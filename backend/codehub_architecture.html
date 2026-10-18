@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeHub - System Architecture & Interview Guide</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Mermaid.js for Visual Diagram Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                darkMode: true,
+                primaryColor: '#6366f1',
+                primaryTextColor: '#ffffff',
+                primaryBorderColor: '#818cf8',
+                lineColor: '#38bdf8',
+                secondaryColor: '#1e293b',
+                tertiaryColor: '#0f172a',
+                fontFamily: 'Inter, sans-serif'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --border: #1f2937;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --accent-cyan: #38bdf8;
+            --accent-emerald: #34d399;
+            --accent-amber: #fbbf24;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .actions {
+            margin-top: 20px;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #6366f1, #38bdf8);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 14px var(--accent-glow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        /* Card Section */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        /* Diagram Box */
+        .diagram-wrapper {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            font-size: 0.95rem;
+        }
+
+        /* Code snippets */
+        code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        /* Q&A Section */
+        .qa-item {
+            margin-bottom: 24px;
+            background: rgba(15, 23, 42, 0.6);
+            border-left: 4px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+            padding: 18px 20px;
+        }
+
+        .qa-question {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qa-answer {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            line-height: 1.65;
+        }
+
+        .qa-answer strong {
+            color: var(--accent-cyan);
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: white !important;
+                color: black !important;
+                padding: 0;
+            }
+            .btn-print {
+                display: none;
+            }
+            .card {
+                background: white !important;
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+                color: black !important;
+                page-break-inside: avoid;
+            }
+            .qa-item {
+                background: #f8fafc !important;
+                color: black !important;
+                border-left-color: #4f46e5 !important;
+            }
+            .qa-question, .qa-answer {
+                color: black !important;
+            }
+            h1 {
+                background: none !important;
+                -webkit-text-fill-color: black !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="badge">CodeHub System Architecture</div>
+        <h1>Judge0 Batch Execution & Platform Design</h1>
+        <p class="subtitle">Complete Technical Architecture, Concurrency Flow & Interview Guide</p>
+        <div class="actions">
+            <button class="btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+        </div>
+    </header>
+
+    <!-- Visual Architecture Diagram -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">⚡</span>
+            <h2>Parallel Batch Execution Sequence Diagram</h2>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">
+            This diagram illustrates the high-speed batch execution cycle where all test cases are processed in parallel on Judge0 worker nodes.
+        </p>
+        <div class="diagram-wrapper">
+            <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as Client / User
+    participant Backend as CodeHub API
+    participant Judge0 as Judge0 CE Cluster
+    participant DB as MongoDB
+
+    Note over User,Backend: 1. Code Submission
+    User->>Backend: POST /api/execution/submit { problemId, language, code }
+    Backend->>Backend: Fetch visible + hidden test cases
+    Backend->>DB: 1. Create Submission (verdict: "Pending")
+    Note over Backend,DB: 💾 Code safely preserved in MongoDB!
+
+    Note over Backend,Judge0: 2. Single Parallel Batch Dispatch
+    Backend->>Judge0: POST /submissions/batch (All test cases in 1 request)
+    Judge0-->>Backend: [{ token: "t1" }, { token: "t2" }, { token: "t3" }]
+
+    Note over Backend,Judge0: 3. Non-blocking Result Polling
+    loop Until all test cases finish (status.id > 2)
+        Backend->>Judge0: GET /submissions/batch?tokens=t1,t2,t3&base64_encoded=false
+        Judge0-->>Backend: Evaluation Status (In Queue / Processing / Done)
+    end
+
+    Note over Backend,DB: 4. Verdict Evaluation & Update
+    Backend->>Backend: Evaluate outputs, peak executionTime & memory
+    Backend->>DB: Update Submission document (Verdict, Time, Memory, Tests)
+    alt If Verdict == Accepted
+        Backend->>DB: Update user.problemsSolved ($addToSet)
+    end
+
+    Backend-->>User: 200 OK { verdict, testCasesPassed, executionTime, memory }
+            </pre>
+        </div>
+    </div>
+
+    <!-- Supported Languages -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">🌐</span>
+            <h2>Supported Languages & Runtime Matrix</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Language</th>
+                    <th>Runtime / Compiler</th>
+                    <th>Judge0 Language ID</th>
+                    <th>Default Time Limit</th>
+                    <th>Default Memory</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>JavaScript</strong></td>
+                    <td>Node.js 22.08.0</td>
+                    <td><code>102</code></td>
+                    <td>2.0s</td>
+                    <td>256 MB</td>
+                </tr>
+                <tr>
+                    <td><strong>Python</strong></td>
+                    <td>Python 3.12.5</td>
+                    <td><code>100</code></td>
+                    <td>2.0s</td>
+                    <td>256 MB</td>
+                </tr>
+                <tr>
+                    <td><strong>C++</strong></td>
+                    <td>GCC 14.1.0</td>
+                    <td><code>105</code></td>
+                    <td>2.0s</td>
+                    <td>256 MB</td>
+                </tr>
+                <tr>
+                    <td><strong>C</strong></td>
+                    <td>GCC 14.1.0</td>
+                    <td><code>103</code></td>
+                    <td>2.0s</td>
+                    <td>256 MB</td>
+                </tr>
+                <tr>
+                    <td><strong>Java</strong></td>
+                    <td>JDK 17.0.6</td>
+                    <td><code>91</code></td>
+                    <td>2.0s</td>
+                    <td>256 MB</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Interview Q&A Section -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">🎯</span>
+            <h2>High-Frequency Interview Questions & Answers</h2>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q1: Why did you use <code>base64_encoded=false</code> when fetching results from Judge0?</div>
+            <div class="qa-answer">
+                By default, Judge0 returns outputs (<code>stdout</code>, <code>stderr</code>, <code>compile_output</code>) encoded in Base64 strings to safely transport binary or non-ASCII characters. Since our coding platform operates on standard plaintext UTF-8, setting <code>base64_encoded=false</code> instructs Judge0 to return raw plaintext strings directly. This eliminates unnecessary <code>Buffer.from(str, 'base64')</code> decoding overhead on every test case in the backend.
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q2: How does Batch Submission improve scalability compared to sequential execution?</div>
+            <div class="qa-answer">
+                <strong>Sequential Execution:</strong> If a problem has 10 test cases, sending them 1-by-1 requires 10 roundtrip HTTP requests. If each takes 600ms, user latency is <strong>6+ seconds</strong>.<br>
+                <strong>Batch Mode (<code>/submissions/batch</code>):</strong> We send all 10 test cases in <strong>1 single POST request</strong>. Judge0 executes them concurrently across worker threads. Our backend polls once or twice and receives all 10 results in <strong>~1 to 1.5 seconds</strong> (an ~80% latency reduction).
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q3: How do you prevent users from inspecting hidden test cases?</div>
+            <div class="qa-answer">
+                We implement <strong>Field Projection Filtering</strong> at the MongoDB query layer. When a public user fetches problem details via <code>GET /api/problems/:id</code> (or <code>/get/:id</code>), the query explicitly executes <code>.select("-hiddenTestCases -referenceSolution")</code>. Hidden test cases are only read into server memory during submission evaluation and never leave the backend.
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q4: How is malicious user code prevented from compromising the server?</div>
+            <div class="qa-answer">
+                User code is never executed directly on the Node.js application server. Execution is delegated to <strong>Judge0</strong>, which encapsulates every run in an isolated Linux sandbox using <strong><code>isolate</code></strong> (cgroups, namespaces, chroot jail, and seccomp filters). This enforces strict CPU time limits, memory limits, and disables unauthorized network/filesystem access.
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q5: How does your Authentication & Token Rotation (RTR) system work?</div>
+            <div class="qa-answer">
+                We use a <strong>dual-token strategy with Redis</strong>:<br>
+                1. <strong>Access Token (15m):</strong> Stateless JWT passed in the <code>Authorization: Bearer</code> header.<br>
+                2. <strong>Refresh Token (7d):</strong> Stored in an <code>httpOnly, sameSite: strict</code> cookie to prevent XSS.<br>
+                3. <strong>Token Rotation (RTR):</strong> On <code>/api/auth/refresh</code>, the existing refresh token in Redis is destroyed, and a new token pair is generated.<br>
+                4. <strong>Logout Blacklisting:</strong> On logout, the access token's remaining TTL is blacklisted in Redis to prevent reuse.
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q6: How do you prevent duplicate entries when tracking solved problems?</div>
+            <div class="qa-answer">
+                We use MongoDB's atomic <strong><code>$addToSet</code></strong> operator: <code>user.findByIdAndUpdate(userId, { $addToSet: { problemsSolved: problemId } })</code>. This guarantees mathematical set semantics—no matter how many times a user resubmits an accepted solution, the problem ID is only stored once.
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q7: What happens if code enters an infinite loop or allocates excessive memory?</div>
+            <div class="qa-answer">
+                - <strong>Infinite Loop:</strong> Judge0 terminates the execution when <code>cpu_time_limit</code> expires and returns Status ID <code>5</code> (<strong>Time Limit Exceeded</strong>).<br>
+                - <strong>Memory Overflow:</strong> Linux cgroups abort the process with Status ID <code>7-12</code> (<strong>Runtime Error</strong>).<br>
+                Our backend captures these status codes and returns a structured verdict without blocking Node.js.
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <div class="qa-question">📌 Q8: Why do you store the submission with status "Pending" before sending to Judge0?</div>
+            <div class="qa-answer">
+                <strong>1. Zero Data Loss:</strong> If Judge0 crashes or experiences a network outage, the user's submitted code and timestamp are already safely persisted in MongoDB.<br>
+                <strong>2. Fault Tolerance:</strong> If an exception occurs, the submission record is updated with <code>"Runtime Error"</code> / <code>"Internal Error"</code> and the specific failure reason, rather than disappearing silently.<br>
+                <strong>3. Queue Readiness:</strong> This decouples submission intake from execution, making it ready for asynchronous background worker queues (e.g., BullMQ / Redis).
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit real env files (backend/.env.example is the template)
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+dist-ssr/
+
+# Local-only overrides (e.g. Vite's .env.local, *.local configs)
+*.local
+
+# Logs & OS/editor files
+*.log
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
