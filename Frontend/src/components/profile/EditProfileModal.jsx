@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { changeMyPassword, updateMyProfile } from "../../api/profile";
 import { getApiErrorMessage } from "../../api/execution";
 import { LANGUAGES } from "../../constants/languages";
+import AvatarPicker from "./AvatarPicker";
 import { setAccessToken } from "../../store/slices/authSlice";
 
 // Same rules as the backend (updateProfileValidation / changePasswordValidation)
@@ -17,11 +18,6 @@ const profileSchema = z.object({
     .max(20, "At most 20 characters")
     .refine((v) => v === "" || v.length >= 3, "At least 3 characters (or leave empty)"),
   bio: z.string().max(200, "At most 200 characters"),
-  avatar: z
-    .string()
-    .trim()
-    .max(500, "URL is too long")
-    .refine((v) => v === "" || /^https?:\/\/\S+$/i.test(v), "Must be an http(s) image URL"),
   languagePreferences: z.array(z.string()),
 });
 
@@ -94,13 +90,11 @@ function ProfileForm({ profile, onSaved }) {
       firstName: profile.firstName || "",
       lastName: profile.lastName || "",
       bio: profile.bio || "",
-      avatar: profile.avatar || "",
       languagePreferences: profile.languagePreferences || [],
     },
   });
 
   const bio = watch("bio") || "";
-  const avatar = watch("avatar");
   const selectedLanguages = watch("languagePreferences") || [];
 
   const toggleLanguage = (id) => {
@@ -141,19 +135,6 @@ function ProfileForm({ profile, onSaved }) {
           placeholder="Tell others a little about yourself"
           className={`${inputClass} resize-none ${borderFor(errors.bio)}`}
         />
-      </Field>
-
-      <Field label="Avatar URL" error={errors.avatar?.message} hint="Leave empty for the default">
-        <div className="flex items-center gap-3">
-          <input
-            {...register("avatar")}
-            placeholder="https://…"
-            className={`${inputClass} ${borderFor(errors.avatar)}`}
-          />
-          {avatar && !errors.avatar && (
-            <img src={avatar} alt="" className="w-9 h-9 rounded-lg object-cover border border-[#2c2e33] shrink-0" />
-          )}
-        </div>
       </Field>
 
       <div className="space-y-1.5">
@@ -288,7 +269,10 @@ export default function EditProfileModal({ isOpen, onClose, profile, onSaved }) 
               <div className="animate-spin h-6 w-6 border-2 border-[#e2a24a] border-t-transparent rounded-full" />
             </div>
           ) : tab === "profile" ? (
-            <ProfileForm profile={profile} onSaved={onSaved} />
+            <>
+              <AvatarPicker avatar={profile.avatar} name={profile.name || profile.username} onChanged={onSaved} />
+              <ProfileForm profile={profile} onSaved={onSaved} />
+            </>
           ) : (
             <PasswordForm />
           )}

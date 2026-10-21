@@ -54,7 +54,7 @@ export const logoutUser = createAsyncThunk(
 
 // ─── Initial State ───────────────────────────────────────────────────────────
 const initialState = {
-  user: null,             // { username, email, ... }
+  user: null,             // { id, username, email, role, avatar } from login / refresh
   profile: null,          // { username, name, avatar, bio, solvedStats, ... }
   accessToken: null,      // In-memory token (no localStorage)
   isAuthenticated: false,
@@ -81,6 +81,12 @@ const authSlice = createSlice({
     },
     setUserProfile: (state, action) => {
       state.profile = action.payload;
+    },
+    // After uploading or removing a photo: payload is the new URL, or null
+    setAvatar: (state, action) => {
+      const url = action.payload || null;
+      if (state.user) state.user.avatar = url;
+      if (state.profile) state.profile.avatar = url;
     },
     clearAuth: (state) => {
       state.user = null;
@@ -125,5 +131,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, setAccessToken, setUserProfile, clearAuth, setLoading } = authSlice.actions;
+export const { setCredentials, setAccessToken, setUserProfile, setAvatar, clearAuth, setLoading } = authSlice.actions;
 export default authSlice.reducer;

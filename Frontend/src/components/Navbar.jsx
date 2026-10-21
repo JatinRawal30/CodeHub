@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import CodeHubLogo from "./CodeHubLogo";
+import UserAvatar from "./UserAvatar";
 import { logoutUser, fetchUserProfile } from "../store/slices/authSlice";
 
 export default function Navbar({ activeSection = "problems", onSectionChange, onOpenSettings }) {
@@ -10,7 +11,6 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
   const { user, profile } = useSelector((state) => state.auth);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [imgError, setImgError] = useState(false);
   const dropdownRef = useRef(null);
 
   // Fetch full profile info (including solved problem count) if not already loaded
@@ -55,11 +55,8 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
   const username = profile?.username || user?.username || "Coder";
   const displayName = profile?.name || username;
   const email = profile?.email || user?.email || "";
-  const avatarUrl =
-    profile?.avatar ||
-    user?.avatar ||
-    user?.profile?.avatar ||
-    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
+  // Comes with login / refresh (user.avatar) and is updated by setAvatar after an upload
+  const avatar = user?.avatar || profile?.avatar || null;
 
   // Problem solved count statistics
   const totalSolved =
@@ -114,20 +111,12 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
             className="flex items-center gap-2 p-1 rounded-full hover:bg-[#222428] transition-all cursor-pointer group focus:outline-none"
           >
             {/* User Avatar */}
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-[#2e3035] group-hover:border-[#e2a24a] transition-colors flex items-center justify-center bg-[#151619]">
-              {!imgError && avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={username}
-                  onError={() => setImgError(true)}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-xs font-bold text-[#e2a24a]">
-                  {username.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
+            <UserAvatar
+              src={avatar}
+              name={username}
+              size={32}
+              className="rounded-full border border-[#2e3035] group-hover:border-[#e2a24a] transition-colors"
+            />
 
             {/* Subtle chevron */}
             <svg
@@ -152,19 +141,7 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
             >
               {/* Header: User identity */}
               <div className="px-4 py-3 flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full overflow-hidden border border-[#2e3035] flex-shrink-0 bg-[#151619] flex items-center justify-center">
-                  {!imgError && avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-base font-bold text-[#e2a24a]">
-                      {username.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
+                <UserAvatar src={avatar} name={username} size={44} className="rounded-full border border-[#2e3035]" />
                 <div className="overflow-hidden">
                   <div className="text-sm font-semibold text-white truncate flex items-center gap-1.5">
                     <span className="truncate">{displayName}</span>

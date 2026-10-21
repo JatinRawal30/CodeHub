@@ -11,8 +11,14 @@ const {
     changePassword,
 } = require("../controllers/userProfile.controller");
 const {
+    getAvatarSignature,
+    saveAvatar,
+    removeAvatar,
+} = require("../controllers/avatar.controller");
+const {
     sendVerifyEmailLimiter,
     verifyEmailLimiter,
+    avatarUploadLimiter,
 } = require("../middleware/rateLimiter.middleware");
 
 const userRouter = express.Router();
@@ -27,10 +33,14 @@ userRouter.post('/verify-email',      authMiddleware, verifyEmailLimiter,     ve
 // PRIVATE PROFILE (owner only — requires auth)
 // ─────────────────────────────────────────────────────────────────────────────
 // GET  /api/user/profile  → full private profile + email + account settings
-// PUT  /api/user/profile  → update bio, avatar, name, languagePreferences
+// PUT  /api/user/profile  → update bio, name, languagePreferences (avatar has its own routes below)
 userRouter.get('/profile', authMiddleware, getMyProfile);
 userRouter.put('/profile', authMiddleware, updateMyProfile);
 userRouter.patch('/profile/change-password',authMiddleware,changePassword);
+userRouter.post('/avatar/signature', authMiddleware, avatarUploadLimiter, getAvatarSignature);
+userRouter.put('/avatar', authMiddleware, saveAvatar);
+userRouter.delete('/avatar', authMiddleware, removeAvatar);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC PROFILE (by username — no auth required, like LeetCode)
 // ─────────────────────────────────────────────────────────────────────────────

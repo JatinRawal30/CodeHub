@@ -158,7 +158,7 @@ class UserService {
             // --- Identity ---
             username: foundUser.username,
             name: `${foundUser.firstName}${foundUser.lastName ? " " + foundUser.lastName : ""}`,
-            avatar: foundUser.profile?.avatar,
+            avatar: foundUser.profile?.avatar?.url || "",
             bio: foundUser.profile?.bio || "",
             isVerified: foundUser.isVerified,
             role: foundUser.role,
@@ -234,14 +234,14 @@ class UserService {
 
     /**
      * Update the logged-in user's editable profile fields.
-     * Empty lastName / avatar remove the value (avatar falls back to the default image).
+     * An empty lastName removes it. The avatar is changed only via avatar.service.js.
      */
     async updateMyProfile(userId, body) {
         const validation = updateProfileValidation.safeParse(body);
         if (!validation.success) {
             throw new BadRequestError("Invalid request body", validation.error.issues);
         }
-        const { firstName, lastName, bio, avatar, languagePreferences } = validation.data;
+        const { firstName, lastName, bio, languagePreferences } = validation.data;
 
         const set = {};
         const unset = {};
@@ -251,10 +251,6 @@ class UserService {
             else set.lastName = lastName;
         }
         if (bio !== undefined) set["profile.bio"] = bio;
-        if (avatar !== undefined) {
-            if (avatar === "") unset["profile.avatar"] = "";
-            else set["profile.avatar"] = avatar;
-        }
         if (languagePreferences !== undefined) {
             set.languagePreferences = [...new Set(languagePreferences)];
         }

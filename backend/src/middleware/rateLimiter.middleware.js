@@ -107,6 +107,12 @@ const refreshLimiter = createRateLimiter({
     actionName: 'token refreshes',
 });
 
+// ratelimiter for upload/change avatar(profile photo)
+const avatarUploadLimiter = createRateLimiter({
+    prefix: 'avatar-upload', limit: 10, windowSeconds: 60 * 60, actionName: 'avatar uploads',
+});
+
+
 module.exports = {
     createRateLimiter,
     loginLimiter,
@@ -116,4 +122,5 @@ module.exports = {
     submitCodeLimiter,
     sendVerifyEmailLimiter,
     verifyEmailLimiter,
+    avatarUploadLimiter,
 };

@@ -1,3 +1,5 @@
+import UserAvatar from "./UserAvatar";
+
 export default function SettingsModal({
   isOpen = false,
   onClose,
@@ -12,11 +14,7 @@ export default function SettingsModal({
   const email = profile?.email || user?.email || "—";
   const role = profile?.role || user?.role || "user";
   const bio = profile?.bio || "No bio yet";
-  const avatarUrl =
-    profile?.avatar ||
-    user?.avatar ||
-    user?.profile?.avatar ||
-    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
+  const avatar = user?.avatar || profile?.avatar || null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
@@ -47,13 +45,7 @@ export default function SettingsModal({
         {/* Profile Info Summary */}
         <div className="py-5 space-y-4 text-sm">
           <div className="flex items-center gap-4 bg-[#151619] p-3 rounded-xl border border-[#202226]">
-            <div className="w-12 h-12 rounded-full overflow-hidden border border-[#2e3035] bg-[#1a1b1f] flex items-center justify-center flex-shrink-0">
-              <img
-                src={avatarUrl}
-                alt={username}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <UserAvatar src={avatar} name={username} size={48} className="rounded-full border border-[#2e3035]" />
             <div className="overflow-hidden">
               <div className="font-semibold text-white truncate">{displayName}</div>
               <div className="text-xs text-[#9a9ca3] truncate">@{username}</div>

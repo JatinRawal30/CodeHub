@@ -56,8 +56,8 @@ const connection = async () => {
                 process.exit(1);
             }
         };
-        process.on("SIGTERM", () => shutdown("SIGTERM")); // sent by hosting platforms on deploy
-        process.on("SIGINT", () => shutdown("SIGINT"));   // Ctrl+C
+        process.on("SIGTERM", () => shutdown("SIGTERM")); 
+        process.on("SIGINT", () => shutdown("SIGINT"));   
     }
     catch (error) {
         console.log("Error in connecting to database or redis: ", error.message);

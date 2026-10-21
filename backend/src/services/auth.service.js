@@ -4,6 +4,7 @@ const { userValidation, loginValidation } = require("../utils/validateReqBody");
 const { hashPassword, comparePasswords } = require("../utils/hashing");
 const { generateToken, verifyRefreshToken } = require("../utils/generateToken");
 const redisClient = require("../config/redis.config");
+const cloudinary = require("../config/cloudinary.config");
 const { z } = require("zod");
 const {
     BadRequestError,
@@ -11,6 +12,14 @@ const {
     NotFoundError,
     ConflictError,
 } = require("../utils/appError");
+
+const toUserResponse = (u) => ({
+    id: u._id,
+    email: u.email,
+    username: u.username,
+    role: u.role,
+    avatar: u.profile?.avatar?.url || null, // matches your new { url, publicId } schema
+});
 
 const REFRESH_TOKEN_EXPIRY = 60 * 60 * 24 * 7; // 7 days in seconds
 
@@ -57,12 +66,7 @@ class AuthService {
         });
 
         return {
-            user: {
-                id: newUser._id,
-                email: newUser.email,
-                username: newUser.username,
-                role: newUser.role,
-            },
+            user: toUserResponse(newUser),
             accessToken: token,
             refreshToken,
         };
@@ -108,12 +112,7 @@ class AuthService {
         });
 
         return {
-            user: {
-                id: existingUser._id,
-                email: existingUser.email,
-                username: existingUser.username,
-                role: existingUser.role,
-            },
+            user: toUserResponse(existingUser),
             accessToken: token,
             refreshToken,
         };
@@ -177,12 +176,7 @@ class AuthService {
         return {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
-            user: {
-                id: existingUser._id,
-                email: existingUser.email,
-                username: existingUser.username,
-                role: existingUser.role,
-            },
+            user: toUserResponse(existingUser),
         };
     }
 
@@ -220,6 +214,14 @@ class AuthService {
 
         // Cascade delete all submissions made by this user
         await Submission.deleteMany({ userId });
+
+        // Delete their profile photo from Cloudinary (never block account deletion on it)
+        const avatarPublicId = deletedUser.profile?.avatar?.publicId;
+        if (avatarPublicId) {
+            await cloudinary.uploader
+                .destroy(avatarPublicId, { invalidate: true })
+                .catch((error) => console.error("Could not delete avatar from Cloudinary:", error.message));
+        }
 
         // Blacklist current access token in Redis
         if (token && userPayload && userPayload.exp) {
