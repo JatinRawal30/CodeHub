@@ -1,24 +1,5 @@
-import { useState } from "react";
 import { getLanguageLabel } from "../../constants/languages";
-
-function Avatar({ src, name }) {
-  const [failed, setFailed] = useState(false);
-  if (!src || failed) {
-    return (
-      <div className="w-20 h-20 rounded-xl bg-[#151619] border border-[#2e3035] flex items-center justify-center text-2xl font-bold text-[#e2a24a]">
-        {name?.charAt(0).toUpperCase() || "?"}
-      </div>
-    );
-  }
-  return (
-    <img
-      src={src}
-      alt={name}
-      onError={() => setFailed(true)}
-      className="w-20 h-20 rounded-xl object-cover border border-[#2e3035]"
-    />
-  );
-}
+import UserAvatar from "../UserAvatar";
 
 function SectionTitle({ children }) {
   return <h3 className="text-sm font-semibold text-white mb-3">{children}</h3>;
@@ -32,7 +13,7 @@ export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit })
     <aside className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl p-5 space-y-5">
       {/* Identity */}
       <div className="flex gap-4">
-        <Avatar src={profile.avatar} name={profile.name || profile.username} />
+        <UserAvatar src={profile.avatar} name={profile.name || profile.username} size={80} className="rounded-xl border border-[#2e3035]" />
         <div className="min-w-0 flex flex-col justify-center">
           <div className="flex items-center gap-1.5">
             <h1 className="text-base font-semibold text-white truncate">{profile.name}</h1>

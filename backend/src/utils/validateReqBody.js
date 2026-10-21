@@ -109,7 +109,8 @@ const executionValidation = z.object({
 // -------------------------------------------------------------
 // PROFILE UPDATE VALIDATION
 // -------------------------------------------------------------
-// Every field is optional; an empty lastName or avatar means "remove it".
+// Every field is optional; an empty lastName means "remove it".
+// The avatar is not here: it changes only through the /api/user/avatar routes (Cloudinary).
 const updateProfileValidation = z.object({
     firstName: z.string().trim()
         .min(3, "First name must be at least 3 characters")
@@ -120,9 +121,6 @@ const updateProfileValidation = z.object({
         .refine((v) => v === "" || v.length >= 3, "Last name must be at least 3 characters")
         .optional(),
     bio: z.string().trim().max(200, "Bio cannot exceed 200 characters").optional(),
-    avatar: z.string().trim().max(500, "Avatar URL is too long")
-        .refine((v) => v === "" || /^https?:\/\/\S+$/i.test(v), "Avatar must be an http(s) image URL")
-        .optional(),
     languagePreferences: z.array(z.enum(LANGUAGE_ENUM)).max(LANGUAGE_ENUM.length).optional(),
 });
 

@@ -2,7 +2,7 @@
 
 A LeetCode-style online judge. Users browse coding problems, write solutions in an in-browser VS Code editor, run them against sample tests, and submit them to be judged against hidden test cases. Each submission gets a verdict, runtime and memory usage.
 
-**Status:** v1 (initial version). Built as a full-stack learning and portfolio project, designed to run entirely on free tiers.
+**Status:** v2. It adds profile photo uploads with Cloudinary; see [VERSION_2.md](VERSION_2.md) for what changed since v1. Built as a full-stack learning and portfolio project, designed to run entirely on free tiers.
 
 ---
 
@@ -24,7 +24,8 @@ A LeetCode-style online judge. Users browse coding problems, write solutions in 
 - Register and log in with a username or email
 - Email verification with a 6-digit OTP (printed to the server console when email isn't configured)
 - Public profile at `/u/:username`: solved count by difficulty, submission stats, activity heatmap, recent accepted problems
-- Edit profile (name, bio, avatar, preferred languages), change password, delete account
+- Profile photo upload: resized in the browser, uploaded straight to Cloudinary with a server-signed request, and shown at the right size everywhere. Users without a photo see their initial.
+- Edit profile (name, bio, preferred languages), change password, delete account
 
 **Backend engineering**
 - **Asynchronous judging:** submissions go into a BullMQ queue and a background worker judges them, so the API responds right away
@@ -47,6 +48,7 @@ A LeetCode-style online judge. Users browse coding problems, write solutions in 
 | **Auth** | JSON Web Tokens, bcrypt, httpOnly cookies |
 | **Validation** | Zod (server and client) |
 | **Email** | Nodemailer |
+| **Image storage** | Cloudinary (signed direct uploads, on-the-fly resizing) |
 | **Frontend** | React 19, Vite 8, React Router 7 |
 | **State** | Redux Toolkit |
 | **Editor** | Monaco (`@monaco-editor/react`), `react-resizable-panels` |
@@ -194,6 +196,9 @@ cp backend/.env.example backend/.env
 | `EMAIL_USER` / `EMAIL_PASS` | no | SMTP credentials (for Gmail, use an App Password) |
 | `EMAIL_SERVICE` | no | Nodemailer service, for example `gmail` |
 | `EMAIL_FROM` | no | Sender address |
+| `CLOUDINARY_CLOUD_NAME` | for photos | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | for photos | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | for photos | Cloudinary API secret (server only, used to sign uploads) |
 
 If you leave the email variables empty, OTP codes are printed to the backend console, which is convenient for local development.
 
@@ -271,7 +276,10 @@ Base URL: `http://localhost:3200/api`. Authenticated routes expect `Authorizatio
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/profile` | user | Own private profile |
-| PUT | `/profile` | user | Update name, bio, avatar, preferred languages |
+| PUT | `/profile` | user | Update name, bio, preferred languages |
+| POST | `/avatar/signature` | user | Get signed Cloudinary upload parameters |
+| PUT | `/avatar` | user | Verify an uploaded photo and save it |
+| DELETE | `/avatar` | user | Remove the profile photo |
 | PATCH | `/profile/change-password` | user | Change password |
 | POST | `/send-verify-email` | user | Email a 6-digit OTP |
 | POST | `/verify-email` | user | Verify the OTP |
@@ -288,6 +296,7 @@ Base URL: `http://localhost:3200/api`. Authenticated routes expect `Authorizatio
 | Token refresh | 60 / 15 min |
 | Send verification email | 10 / 15 min |
 | Verify OTP | 5 / 15 min |
+| Avatar upload | 10 / hour |
 
 When you go over a limit, the API returns `429` with `Retry-After` and `X-RateLimit-*` headers.
 
@@ -295,7 +304,7 @@ When you go over a limit, the API returns `429` with `Retry-After` and `X-RateLi
 
 ## Data Model
 
-- **User**: profile info, bcrypt password hash, `role` (`user` / `admin`), `isVerified`, `problemsSolved` (references to Problem), preferred languages
+- **User**: profile info (bio, avatar `{ url, publicId }` on Cloudinary), bcrypt password hash, `role` (`user` / `admin`), `isVerified`, `problemsSolved` (references to Problem), preferred languages
 - **Problem**: numeric `problemID`, title, description, difficulty, tags, constraints, `visibleTestCases` (with explanations), `hiddenTestCases`, time and memory limits, starter code and reference solutions for each language
 - **Submission**: user, problem, language, code, verdict, tests passed / total, execution time, memory, error message, timestamps
 
@@ -303,9 +312,9 @@ Test cases use **stdin/stdout**: the program reads the input and prints the answ
 
 ---
 
-## Known Limitations (v1)
+## Known Limitations
 
-These are deliberate trade-offs for a free-tier v1, listed so they're easy to find:
+These are deliberate trade-offs for a free-tier deployment, listed so they're easy to find:
 
 - **Public Judge0 CE.** It has no SLA and shared rate limits, and hidden test inputs are sent to a third-party service. A production setup would self-host Judge0 or use a keyed plan.
 - **Development-only settings in code.** The CORS origin (`http://localhost:5173`), the API URL in the frontend (`Frontend/src/api/refresh.js`) and the cookie `secure: false` flag are hard-coded. Move them to environment variables before deploying.
