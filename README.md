@@ -1,6 +1,6 @@
 # CodeHub
 
-A LeetCode-style online judge. Users browse coding problems, write solutions in an in-browser VS Code editor, run them against sample tests, and submit them to be judged against hidden test cases. Each submission gets a verdict, runtime and memory usage.
+A online judge. Users browse coding problems, write solutions in an in-browser VS Code editor, run them against sample tests, and submit them to be judged against hidden test cases. Each submission gets a verdict, runtime and memory usage.
 
 **Status:** v2. It adds profile photo uploads with Cloudinary; see [VERSION_2.md](VERSION_2.md) for what changed since v1. Built as a full-stack learning and portfolio project, designed to run entirely on free tiers.
 
