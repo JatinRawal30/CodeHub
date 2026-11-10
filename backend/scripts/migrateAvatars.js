@@ -8,13 +8,13 @@ const mongoose = require("mongoose");
     // Raw collection access: the Mongoose schema no longer matches the old string values
     const users = mongoose.connection.db.collection("users");
 
-    // 1. The old pixabay placeholder isn't a real photo → remove it (the UI shows initials)
+    // The old pixabay placeholder isn't a real photo; drop it so the UI shows initials
     const cleared = await users.updateMany(
         { "profile.avatar": { $type: "string", $regex: /pixabay\.com/ } },
         { $unset: { "profile.avatar": "" } }
     );
 
-    // 2. Any other string URL (a custom avatar) → { url: <old string> }
+    // Any other string is a custom avatar URL → { url: <old string> }
     const converted = await users.updateMany(
         { "profile.avatar": { $type: "string" } },
         [{ $set: { "profile.avatar": { url: "$profile.avatar" } } }]

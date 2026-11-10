@@ -6,7 +6,6 @@ const { user: User } = require("./src/models/user");
 const Problem = require("./src/models/Problem");
 const Submission = require("./src/models/Submission");
 
-// Import the app
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const authRoute = require("./src/routes/auth.routes");
@@ -72,7 +71,6 @@ async function runDemo() {
         const adminEmail = `admin_${timestamp}@codehub.test`;
         const userEmail = `user_${timestamp}@codehub.test`;
 
-        // 1. REGISTER NORMAL USER
         console.log("1️⃣ [POST /api/auth/register] Registering User...");
         const regRes = await request("POST", "/api/auth/register", {
             firstName: "Code",
@@ -86,7 +84,7 @@ async function runDemo() {
         console.log(`   Status: ${regRes.status}, AccessToken: ${regRes.body.accessToken ? "Generated ✅" : "Failed ❌"}`);
         const userToken = regRes.body.accessToken;
 
-        // 2. CREATE SEED ADMIN (Directly in DB for testing admin routes)
+        // No public route creates an admin, so seed one straight into the DB
         const { hashPassword } = require("./src/utils/hashing");
         const adminUser = await User.create({
             firstName: "Admin",
@@ -97,7 +95,6 @@ async function runDemo() {
             role: "admin",
         });
 
-        // 3. ADMIN LOGIN
         console.log("\n2️⃣ [POST /api/auth/login] Admin Login...");
         const adminLoginRes = await request("POST", "/api/auth/login", {
             identifier: adminEmail,
@@ -106,7 +103,6 @@ async function runDemo() {
         console.log(`   Status: ${adminLoginRes.status}, Admin Token: ${adminLoginRes.body.accessToken ? "Generated ✅" : "Failed ❌"}`);
         const adminToken = adminLoginRes.body.accessToken;
 
-        // 4. ADMIN REGISTERS ANOTHER ADMIN VIA API
         console.log("\n3️⃣ [POST /api/auth/admin/register] Admin Registering New Sub-Admin...");
         const subAdminRes = await request("POST", "/api/auth/admin/register", {
             firstName: "SubAdmin",
@@ -118,7 +114,6 @@ async function runDemo() {
         }, { Authorization: `Bearer ${adminToken}` });
         console.log(`   Status: ${subAdminRes.status}, Message: "${subAdminRes.body.message}" ✅`);
 
-        // 5. ADMIN CREATES A CODING PROBLEM
         console.log("\n4️⃣ [POST /api/problems/create] Admin Creating 'Sum of Two Numbers' Problem...");
         const problemRes = await request("POST", "/api/problems/create", {
             problemID: timestamp % 100000,
@@ -150,14 +145,13 @@ async function runDemo() {
         const createdProblem = problemRes.body.problem;
         console.log(`   Status: ${problemRes.status}, Problem ID: ${createdProblem._id} ("${createdProblem.title}") ✅`);
 
-        // 6. GET ALL PROBLEMS & GET PROBLEM BY ID (SECURITY CHECK)
+        // Hidden test cases must not be sent to the client
         console.log("\n5️⃣ [GET /api/problems/:id] Fetching Problem details as public user...");
         const getProblemRes = await request("GET", `/api/problems/${createdProblem._id}`);
         console.log(`   Status: ${getProblemRes.status}`);
         console.log(`   Visible Test Cases returned: ${getProblemRes.body.problem.visibleTestCases.length} ✅`);
         console.log(`   Hidden Test Cases hidden from client: ${getProblemRes.body.problem.hiddenTestCases === undefined ? "SECURE ✅" : "EXPOSED ❌"}`);
 
-        // 7. USER RUNS CODE (VISIBLE TEST CASES)
         console.log("\n6️⃣ [POST /api/execution/run] User Running Python Solution against visible tests...");
         const pySolution = "import sys\na, b = map(int, sys.stdin.read().split())\nprint(a + b)";
         const runRes = await request("POST", "/api/execution/run", {
@@ -170,7 +164,6 @@ async function runDemo() {
         console.log(`   Total Tests: ${runRes.body.totalTests}, Passed: ${runRes.body.passed} ✅`);
         console.log(`   Test 1 Result: expected=${runRes.body.results[0].expectedOutput}, got=${runRes.body.results[0].actualOutput}, status=${runRes.body.results[0].status}`);
 
-        // 8. USER SUBMITS CORRECT CODE (ALL TEST CASES)
         console.log("\n7️⃣ [POST /api/execution/submit] User Submitting Code (All Tests + Save to DB)...");
         const submitRes = await request("POST", "/api/execution/submit", {
             problemId: createdProblem._id,
@@ -182,7 +175,6 @@ async function runDemo() {
         console.log(`   Verdict: ${submitRes.body.verdict} ✅`);
         console.log(`   Passed: ${submitRes.body.testCasesPassed}/${submitRes.body.totalTestCases} Test Cases`);
 
-        // 9. USER SUBMITS WRONG CODE
         console.log("\n8️⃣ [POST /api/execution/submit] User Submitting WRONG Code...");
         const wrongSubmitRes = await request("POST", "/api/execution/submit", {
             problemId: createdProblem._id,
@@ -193,7 +185,6 @@ async function runDemo() {
         console.log(`   Status: ${wrongSubmitRes.status}`);
         console.log(`   Verdict: ${wrongSubmitRes.body.verdict} (Expected: Wrong Answer) ✅`);
 
-        // 10. JAVASCRIPT SUBMISSION TEST
         console.log("\n9️⃣ [POST /api/execution/submit] User Submitting JavaScript Solution...");
         const jsSolution = `
 const fs = require('fs');
@@ -212,7 +203,6 @@ if (input.length >= 2) {
         console.log(`   Verdict: ${jsSubmitRes.body.verdict} (JS Accepted) ✅`);
         console.log(`   Passed: ${jsSubmitRes.body.testCasesPassed}/${jsSubmitRes.body.totalTestCases}`);
 
-        // CLEANUP
         console.log("\n🧹 Cleaning up test artifacts...");
         await Problem.findByIdAndDelete(createdProblem._id);
         await User.deleteMany({ email: { $in: [adminEmail, userEmail, `sub_${timestamp}@codehub.test`] } });

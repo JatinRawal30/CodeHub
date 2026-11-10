@@ -12,9 +12,7 @@ const {
 } = require("../utils/appError");
 
 class ProblemService {
-    /**
-     * Helper to resolve either a 24-char MongoDB ObjectId or numeric problemID (#1, #2, etc.)
-     */
+    // id can be a 24-char ObjectId or the numeric problemID
     getProblemQuery(id) {
         if (!id) return null;
         if (mongoose.isValidObjectId(id)) {
@@ -27,9 +25,7 @@ class ProblemService {
         return null;
     }
 
-    /**
-     * Create a new problem (Admin)
-     */
+    // admin only
     async createProblem(payload, creatorId) {
         const validation = createProblemValidation.safeParse(payload);
         if (!validation.success) {
@@ -51,9 +47,7 @@ class ProblemService {
         return problem;
     }
 
-    /**
-     * Update an existing problem (Admin)
-     */
+    // admin only
     async updateProblem(id, payload) {
         const query = this.getProblemQuery(id);
         if (!query) {
@@ -82,9 +76,7 @@ class ProblemService {
         return problem;
     }
 
-    /**
-     * Delete a problem (Admin)
-     */
+    // admin only
     async deleteProblem(id) {
         const query = this.getProblemQuery(id);
         if (!query) {
@@ -99,9 +91,7 @@ class ProblemService {
         return problem;
     }
 
-    /**
-     * Fetch problem by ID or numeric problemID (excluding hidden test cases & reference solution)
-     */
+    // leaves out hidden test cases and the reference solution
     async getProblemById(id) {
         const query = this.getProblemQuery(id);
         if (!query) {
@@ -119,9 +109,6 @@ class ProblemService {
         return problem;
     }
 
-    /**
-     * Fetch paginated & filtered list of problems
-     */
     async getAllProblems({ difficulty, tags, page = 1, limit = 10, search }) {
         const filter = {};
 
@@ -161,9 +148,6 @@ class ProblemService {
         };
     }
 
-    /**
-     * Fetch all problems created by a specific user (admin)
-     */
     async getUserProblems(userId) {
         const problems = await Problem.find({ problemCreator: userId })
             .select("_id problemID title difficulty tags")
@@ -175,9 +159,7 @@ class ProblemService {
         };
     }
 
-    /**
-     * Fetch all problems solved by a user with difficulty breakdown
-     */
+    // includes a per-difficulty breakdown
     async getSolvedProblems(userId) {
         const currentUser = await user.findById(userId).select("problemsSolved");
         if (!currentUser) {

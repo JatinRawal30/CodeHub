@@ -22,13 +22,8 @@ export async function changeMyPassword({ oldPassword, newPassword, confirmPasswo
 // Parameters the backend signed; they must be sent to Cloudinary exactly as received
 const SIGNED_UPLOAD_FIELDS = ["public_id", "overwrite", "invalidate", "allowed_formats", "transformation", "timestamp"];
 
-/**
- * Upload a new profile photo. Returns the saved avatar URL.
- *   1. shrink the photo in the browser
- *   2. ask our backend for a signed "permission slip"
- *   3. upload the file straight to Cloudinary (never through our server)
- *   4. send Cloudinary's signed receipt to our backend, which verifies and saves it
- */
+// Resizes, gets a signature from our backend, uploads straight to Cloudinary (never via
+// our server), then the backend verifies Cloudinary's response and saves it. Returns the URL.
 export async function uploadAvatar(file, { onStage } = {}) {
   onStage?.("Preparing photo…");
   const image = await resizeImage(file);
@@ -66,4 +61,10 @@ export async function uploadAvatar(file, { onStage } = {}) {
 // Deletes the photo from Cloudinary and the profile; the UI falls back to initials
 export async function removeAvatar() {
   await api.delete("/user/avatar");
+}
+
+// [{ username, name, avatar, solved }], at most 8
+export async function searchUsers(q, signal) {
+  const res = await api.get("/user/search", { params: { q }, signal });
+  return res.data.users;
 }

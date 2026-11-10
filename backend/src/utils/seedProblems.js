@@ -892,7 +892,6 @@ async function seed() {
     await mongoose.connect(process.env.DB_URI);
     console.log("Connected successfully!");
 
-    // Find admin user or fallback to first user
     const adminUser = (await user.findOne({ role: "admin" })) || (await user.findOne());
     if (!adminUser) {
       throw new Error("No user found in database to assign problemCreator");

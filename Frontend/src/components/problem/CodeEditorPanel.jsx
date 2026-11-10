@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { LANGUAGES } from "../../constants/languages";
+import { useTheme } from "../../theme/theme";
 
 export default function CodeEditorPanel({ language, code, onLanguageChange, onCodeChange, onReset, onRun, onSubmit }) {
   // Monaco commands are registered once on mount; refs keep them calling the latest handlers
@@ -11,17 +12,32 @@ export default function CodeEditorPanel({ language, code, onLanguageChange, onCo
     submitRef.current = onSubmit;
   }, [onRun, onSubmit]);
 
-  // vs-dark with the editor background matched to the page surfaces
+  const { theme } = useTheme();
+
+  // Monaco needs literal colors; these mirror the --surface / --surface-hover / --fg-* tokens in index.css
   const handleBeforeMount = (monaco) => {
+    monaco.editor.defineTheme("codehub-light", {
+      base: "vs",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editor.background": "#f5f5f5",
+        "editor.lineHighlightBackground": "#ececec",
+        "editor.lineHighlightBorder": "#ececec",
+        "editorLineNumber.foreground": "#94a3b8",
+        "editorLineNumber.activeForeground": "#475569",
+      },
+    });
     monaco.editor.defineTheme("codehub-dark", {
       base: "vs-dark",
       inherit: true,
       rules: [],
       colors: {
-        "editor.background": "#151619",
-        "editor.lineHighlightBackground": "#1a1b1f",
-        "editorLineNumber.foreground": "#4a4d55",
-        "editorLineNumber.activeForeground": "#9a9ca3",
+        "editor.background": "#232428",
+        "editor.lineHighlightBackground": "#2b2d31",
+        "editor.lineHighlightBorder": "#2b2d31",
+        "editorLineNumber.foreground": "#52525b",
+        "editorLineNumber.activeForeground": "#a1a1aa",
       },
     });
   };
@@ -36,19 +52,18 @@ export default function CodeEditorPanel({ language, code, onLanguageChange, onCo
 
   return (
     <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[#2a2c31] bg-[#18191c]">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-[#68b582] font-mono text-xs">{"</>"}</span>
-          <span className="font-medium text-white">Code</span>
+      <div className="h-9 shrink-0 flex items-center justify-between pl-3 pr-1.5 border-b border-line bg-surface-alt">
+        <div className="flex items-center gap-2">
+          <span className="text-primary text-code-sm">{"</>"}</span>
+          <span className="label-caps text-fg-muted">Code</span>
           <select
             value={language}
             onChange={(e) => onLanguageChange(e.target.value)}
             aria-label="Language"
-            className="ml-2 bg-transparent text-[#c4c6cb] text-xs rounded-md px-2 py-1 hover:bg-[#202226] outline-none cursor-pointer"
+            className="input ml-1 w-auto h-7 pl-2 pr-7 text-body-sm cursor-pointer hover:border-fg-subtle"
           >
             {LANGUAGES.map((l) => (
-              <option key={l.id} value={l.id} className="bg-[#1a1b1f]">
+              <option key={l.id} value={l.id}>
                 {l.label}
               </option>
             ))}
@@ -57,13 +72,12 @@ export default function CodeEditorPanel({ language, code, onLanguageChange, onCo
         <button
           onClick={onReset}
           title="Reset to starter code"
-          className="text-xs text-[#9a9ca3] hover:text-white px-2 py-1 rounded-md hover:bg-[#202226] transition-colors cursor-pointer"
+          className="btn btn-ghost h-7 px-2 text-body-sm"
         >
           ↺ Reset
         </button>
       </div>
 
-      {/* Editor */}
       <div className="flex-1 min-h-0">
         <Editor
           height="100%"
@@ -72,10 +86,11 @@ export default function CodeEditorPanel({ language, code, onLanguageChange, onCo
           onChange={(value) => onCodeChange(value ?? "")}
           beforeMount={handleBeforeMount}
           onMount={handleMount}
-          theme="codehub-dark"
-          loading={<div className="text-sm text-[#9a9ca3]">Loading editor…</div>}
+          theme={theme === "dark" ? "codehub-dark" : "codehub-light"}
+          loading={<div className="text-body-sm text-fg-muted">Loading editor…</div>}
           options={{
             fontSize: 14,
+            fontFamily: "'JetBrains Mono', monospace",
             minimap: { enabled: false },
             automaticLayout: true, // re-measure when panels are resized
             scrollBeyondLastLine: false,

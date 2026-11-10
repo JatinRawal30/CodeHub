@@ -38,7 +38,7 @@ const connection = async () => {
             console.log(`Server is running on port ${process.env.PORT}`);
         })
 
-        // Graceful shutdown: stop taking requests, let the worker finish its current job, close connections
+        // On SIGTERM/SIGINT: stop taking requests, let the worker finish its current job, then close connections
         let shuttingDown = false;
         const shutdown = async (signal) => {
             if (shuttingDown) return;

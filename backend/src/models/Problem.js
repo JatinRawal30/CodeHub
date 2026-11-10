@@ -12,7 +12,6 @@ const problemSchema = new Schema({
         required: true
     },
     description: {
-        // complete problem statement
         type: String,
         required: true
     },

@@ -2,7 +2,7 @@ import { getLanguageLabel } from "../../constants/languages";
 import UserAvatar from "../UserAvatar";
 
 function SectionTitle({ children }) {
-  return <h3 className="text-sm font-semibold text-white mb-3">{children}</h3>;
+  return <h3 className="label-caps text-fg-muted mb-3">{children}</h3>;
 }
 
 export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit }) {
@@ -10,20 +10,19 @@ export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit })
   const joined = new Date(profile.memberSince).toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
   return (
-    <aside className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl p-5 space-y-5">
-      {/* Identity */}
+    <aside className="card p-5 space-y-5">
       <div className="flex gap-4">
-        <UserAvatar src={profile.avatar} name={profile.name || profile.username} size={80} className="rounded-xl border border-[#2e3035]" />
+        <UserAvatar src={profile.avatar} name={profile.name || profile.username} size={80} className="rounded-full border border-line" />
         <div className="min-w-0 flex flex-col justify-center">
           <div className="flex items-center gap-1.5">
-            <h1 className="text-base font-semibold text-white truncate">{profile.name}</h1>
+            <h1 className="text-headline-sm text-fg truncate">{profile.name}</h1>
             {profile.isVerified && (
-              <span className="text-[#68b582] text-xs" title="Verified email">✓</span>
+              <span className="text-success-fg text-body-sm" title="Verified email">✓</span>
             )}
           </div>
-          <div className="text-sm text-[#9a9ca3] truncate">@{profile.username}</div>
-          <div className="mt-2 text-sm text-[#9a9ca3]">
-            Rank <span className="font-semibold text-white tabular-nums">{profile.rank?.toLocaleString()}</span>
+          <div className="text-code-md text-fg-muted truncate">@{profile.username}</div>
+          <div className="mt-2 text-body-sm text-fg-muted">
+            Rank <span className="text-code-md font-semibold text-fg">{profile.rank?.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -31,30 +30,29 @@ export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit })
       {isOwner && (
         <button
           onClick={onEdit}
-          className="w-full py-2 rounded-lg text-sm font-medium bg-[#68b582]/15 text-[#68b582] hover:bg-[#68b582]/25 transition-colors cursor-pointer"
+          className="btn btn-secondary w-full"
         >
           Edit Profile
         </button>
       )}
 
-      {profile.bio && <p className="text-sm text-[#c4c6cb] leading-relaxed whitespace-pre-wrap">{profile.bio}</p>}
+      {profile.bio && <p className="text-body-md text-fg-body whitespace-pre-wrap">{profile.bio}</p>}
 
-      {/* Meta */}
-      <ul className="space-y-2 text-sm text-[#9a9ca3]">
+      <ul className="space-y-2 text-body-sm text-fg-muted">
         <li className="flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 shrink-0 text-fg-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           Joined {joined}
         </li>
         {isOwner && ownerEmail && (
           <li className="flex items-center gap-2 min-w-0">
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 shrink-0 text-fg-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
             <span className="truncate">{ownerEmail}</span>
             {!profile.isVerified && (
-              <span className="shrink-0 text-[11px] text-[#e2a24a] bg-[#e2a24a]/10 px-1.5 py-0.5 rounded">unverified</span>
+              <span className="shrink-0 badge badge-warning">unverified</span>
             )}
           </li>
         )}
@@ -65,7 +63,7 @@ export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit })
           <SectionTitle>Preferred Languages</SectionTitle>
           <div className="flex flex-wrap gap-1.5">
             {profile.languagePreferences.map((lang) => (
-              <span key={lang} className="px-2.5 py-1 rounded-full text-xs bg-[#2c2e33] text-[#c4c6cb]">
+              <span key={lang} className="badge badge-neutral">
                 {getLanguageLabel(lang)}
               </span>
             ))}
@@ -73,22 +71,22 @@ export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit })
         </div>
       )}
 
-      <div className="h-px bg-[#2a2c31]" />
+      <div className="divider" />
 
-      {/* Languages used for accepted solutions */}
+      {/* languages used in accepted solutions */}
       <div>
         <SectionTitle>Languages</SectionTitle>
         {languageEntries.length === 0 ? (
-          <p className="text-xs text-[#767980]">No accepted solutions yet.</p>
+          <p className="text-body-sm text-fg-subtle">No accepted solutions yet.</p>
         ) : (
           <ul className="space-y-2.5">
             {languageEntries.map(([lang, count]) => (
-              <li key={lang} className="flex items-center justify-between text-sm">
-                <span className="px-2.5 py-0.5 rounded-full text-xs bg-[#2c2e33] text-[#c4c6cb]">
+              <li key={lang} className="flex items-center justify-between text-body-sm">
+                <span className="badge badge-neutral">
                   {getLanguageLabel(lang)}
                 </span>
-                <span className="text-[#9a9ca3]">
-                  <span className="font-semibold text-white tabular-nums">{count}</span> problem{count === 1 ? "" : "s"} solved
+                <span className="text-fg-muted">
+                  <span className="text-code-md font-semibold text-fg">{count}</span> problem{count === 1 ? "" : "s"} solved
                 </span>
               </li>
             ))}
@@ -96,21 +94,21 @@ export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit })
         )}
       </div>
 
-      <div className="h-px bg-[#2a2c31]" />
+      <div className="divider" />
 
-      {/* Skills from solved problem tags */}
+      {/* skills = tags of solved problems */}
       <div>
         <SectionTitle>Skills</SectionTitle>
         {profile.tagStats?.length ? (
           <div className="flex flex-wrap gap-1.5">
             {profile.tagStats.slice(0, 12).map(({ tag, count }) => (
-              <span key={tag} className="px-2.5 py-1 rounded-full text-xs bg-[#2c2e33] text-[#c4c6cb] capitalize">
-                {tag} <span className="text-[#9a9ca3]">×{count}</span>
+              <span key={tag} className="badge badge-info capitalize">
+                {tag} <span className="opacity-70">×{count}</span>
               </span>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-[#767980]">Solve problems to build your skill tags.</p>
+          <p className="text-body-sm text-fg-subtle">Solve problems to build your skill tags.</p>
         )}
       </div>
     </aside>

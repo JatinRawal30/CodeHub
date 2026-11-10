@@ -36,8 +36,8 @@ function ResizeHandle({ orientation }) {
   return (
     <Separator className={`group flex items-center justify-center outline-none ${isVertical ? "h-2" : "w-2"}`}>
       <div
-        className={`rounded-full bg-[#2c2e33] transition-colors group-data-[separator=hover]:bg-[#e2a24a]/70 group-data-[separator=active]:bg-[#e2a24a] group-data-[separator=focus]:bg-[#e2a24a]/70 ${
-          isVertical ? "h-1 w-10" : "w-1 h-10"
+        className={`rounded-full bg-line-strong transition-colors group-data-[separator=hover]:bg-primary/70 group-data-[separator=active]:bg-primary group-data-[separator=focus]:bg-primary/70 ${
+          isVertical ? "h-0.5 w-12" : "w-0.5 h-12"
         }`}
       />
     </Separator>
@@ -48,8 +48,8 @@ function PanelTab({ isActive, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-        isActive ? "text-white bg-[#202226]" : "text-[#9a9ca3] hover:text-white"
+      className={`h-7 px-2.5 rounded-md text-body-sm font-medium transition-colors cursor-pointer ${
+        isActive ? "text-fg bg-surface shadow-card ring-1 ring-line" : "text-fg-muted hover:text-fg hover:bg-surface-hover"
       }`}
     >
       {children}
@@ -61,21 +61,17 @@ export default function ProblemPage() {
   const { problemId } = useParams();
   const dispatch = useDispatch();
 
-  // Problem data
   const [problem, setProblem] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isSolved, setIsSolved] = useState(false);
 
-  // Editor
   const [language, setLanguage] = useState(DEFAULT_LANGUAGE);
   const [code, setCode] = useState("");
 
-  // Panels
   const [leftTab, setLeftTab] = useState("description");
   const [consoleTab, setConsoleTab] = useState("testcase");
 
-  // Run / Submit
   const [result, setResult] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -213,15 +209,15 @@ export default function ProblemPage() {
 
   if (isLoading || loadError) {
     return (
-      <div className="h-screen flex flex-col bg-[#121315] text-[#e6e7ea]">
+      <div className="h-screen flex flex-col bg-canvas text-fg-body">
         <ProblemHeader onRun={() => {}} onSubmit={() => {}} isRunning={false} isSubmitting={false} />
         <div className="flex-1 flex items-center justify-center">
           {isLoading ? (
-            <div className="animate-spin h-8 w-8 border-3 border-[#e2a24a] border-t-transparent rounded-full" />
+            <div className="spinner w-8 h-8 border-[3px] text-primary" />
           ) : (
             <div className="text-center space-y-3">
-              <p className="text-white font-medium">{loadError}</p>
-              <Link to="/" className="text-sm text-[#e2a24a] hover:underline">
+              <p className="text-fg font-medium">{loadError}</p>
+              <Link to="/" className="text-body-sm text-primary hover:text-primary-hover hover:underline">
                 Back to the problem list
               </Link>
             </div>
@@ -232,7 +228,7 @@ export default function ProblemPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[#121315] text-[#e6e7ea]">
+    <div className="h-screen flex flex-col bg-canvas text-fg-body">
       <ProblemHeader
         onRun={handleRun}
         onSubmit={handleSubmit}
@@ -242,10 +238,10 @@ export default function ProblemPage() {
 
       <main className="flex-1 min-h-0 p-2">
         <Group orientation="horizontal" className="h-full">
-          {/* Left: Description / Submissions */}
+          {/* left: description / submissions */}
           <Panel defaultSize="45" minSize="25" className="h-full">
-            <section className="h-full flex flex-col rounded-lg border border-[#2a2c31] bg-[#18191c] overflow-hidden">
-              <div className="h-10 shrink-0 flex items-center gap-1 px-2 border-b border-[#2a2c31]">
+            <section className="card h-full flex flex-col overflow-hidden">
+              <div className="h-9 shrink-0 flex items-center gap-1 px-1.5 border-b border-line bg-surface-alt">
                 <PanelTab isActive={leftTab === "description"} onClick={() => setLeftTab("description")}>
                   Description
                 </PanelTab>
@@ -269,11 +265,11 @@ export default function ProblemPage() {
 
           <ResizeHandle orientation="horizontal" />
 
-          {/* Right: Editor on top, console below */}
+          {/* right: editor on top, console below */}
           <Panel minSize="30" className="h-full">
             <Group orientation="vertical" className="h-full">
               <Panel defaultSize="65" minSize="20" className="h-full">
-                <section className="h-full rounded-lg border border-[#2a2c31] bg-[#151619] overflow-hidden">
+                <section className="card h-full overflow-hidden">
                   <CodeEditorPanel
                     language={language}
                     code={code}
@@ -289,7 +285,7 @@ export default function ProblemPage() {
               <ResizeHandle orientation="vertical" />
 
               <Panel minSize="12" className="h-full">
-                <section className="h-full rounded-lg border border-[#2a2c31] bg-[#18191c] overflow-hidden">
+                <section className="card h-full overflow-hidden">
                   <ConsolePanel
                     testCases={problem.visibleTestCases}
                     activeTab={consoleTab}

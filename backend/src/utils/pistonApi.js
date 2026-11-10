@@ -1,4 +1,4 @@
-// Judge0 Community Edition (Free Public API)
+// Judge0 CE language ids (free public instance)
 const LANGUAGE_MAP = {
     "javascript": 102, // Node.js 22.08.0
     "python": 100,     // Python 3.12.5
@@ -11,15 +11,7 @@ const JUDGE0_BASE_URL = "https://ce.judge0.com";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Execute multiple test cases in parallel using Judge0 Batch Submission API
- * @param {string} language - Language key ("javascript", "python", "cpp", "c", "java")
- * @param {string} code - Source code to execute
- * @param {string[]} inputs - Array of stdin input strings for each test case
- * @param {number} timeLimit - Time limit in seconds
- * @param {number} memoryLimit - Memory limit in MB
- * @returns {Promise<Array<object>>} - Array of execution results
- */
+// one Judge0 submission per input, sent as a single batch. timeLimit is in seconds, memoryLimit in MB
 async function executeBatch(language, code, inputs = [], timeLimit = 2.0, memoryLimit = 256) {
     const languageId = LANGUAGE_MAP[language];
     if (!languageId) {
@@ -30,18 +22,16 @@ async function executeBatch(language, code, inputs = [], timeLimit = 2.0, memory
         return [];
     }
 
-    // 1. Prepare Batch Submissions Payload
     const submissionsPayload = {
         submissions: inputs.map((stdin) => ({
             language_id: languageId,
             source_code: code,
             stdin: stdin || "",
             cpu_time_limit: timeLimit,
-            memory_limit: memoryLimit * 1024, // Convert MB to KB
+            memory_limit: memoryLimit * 1024, // Judge0 wants KB
         })),
     };
 
-    // 2. Submit Batch to Judge0
     const postResponse = await fetch(`${JUDGE0_BASE_URL}/submissions/batch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,18 +42,18 @@ async function executeBatch(language, code, inputs = [], timeLimit = 2.0, memory
         throw new Error(`Batch submission error: ${postResponse.status} ${postResponse.statusText}`);
     }
 
-    const tokenObjects = await postResponse.json(); // returns [{token: "abc"}, {token: "def"}, ...]
-    const tokens = tokenObjects.map((item) => item.token);  // returns ["abc", "def", ...]
+    const tokenObjects = await postResponse.json();
+    const tokens = tokenObjects.map((item) => item.token);
 
     if (!tokens || tokens.length === 0) {
         throw new Error("No submission tokens returned from Judge0");
     }
 
-    const tokensQuery = tokens.join(","); // returns "abc,def"
+    const tokensQuery = tokens.join(",");
 
-    // 3. Poll for Results (Status ID 1 = In Queue, 2 = Processing)
+    // status 1 = In Queue, 2 = Processing; anything higher is finished
     const MAX_ATTEMPTS = 15;
-    const POLL_INTERVAL = 1000; // 1 second
+    const POLL_INTERVAL = 1000;
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         await sleep(POLL_INTERVAL);
@@ -78,7 +68,6 @@ async function executeBatch(language, code, inputs = [], timeLimit = 2.0, memory
         const data = await getResponse.json();
         const results = data.submissions || [];
 
-        // Check if all test cases have finished processing (status > 2)
         const isComplete = results.every(
             (res) => res && res.status && res.status.id > 2
         );
@@ -99,9 +88,6 @@ async function executeBatch(language, code, inputs = [], timeLimit = 2.0, memory
     throw new Error("Batch execution timed out while waiting for Judge0 results");
 }
 
-/**
- * Execute single code snippet (wrapper around executeBatch for convenience)
- */
 async function executeCode(language, code, stdin = "", timeLimit = 2.0, memoryLimit = 256) {
     const results = await executeBatch(language, code, [stdin], timeLimit, memoryLimit);
     return results[0] || {

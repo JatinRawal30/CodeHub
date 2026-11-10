@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router';
 import { checkAuth } from './store/slices/authSlice';
 import Login from './pages/login';
 import Signup from './pages/signup';
+import ForgotPassword from './pages/forgotPassword';
 import Homepage from './pages/homepage';
 import ProfilePage from './pages/profile';
 
@@ -12,8 +13,8 @@ const ProblemPage = lazy(() => import('./pages/problem'));
 
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#121315]">
-      <div className="animate-spin h-8 w-8 border-3 border-[#e2a24a] border-t-transparent rounded-full" />
+    <div className="min-h-screen flex items-center justify-center bg-canvas">
+      <span className="spinner w-6 h-6 text-primary" role="status" aria-label="Loading" />
     </div>
   );
 }
@@ -25,7 +26,6 @@ function App () {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  // 3. While checkAuth is running in background, show a clean loader
   if (isLoading) {
     return <PageLoader />;
   }
@@ -48,6 +48,7 @@ function App () {
       <Route path="/u/:username" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} />
       <Route path="/login" element={ isAuthenticated ? <Navigate to = "/" /> :<Login />} />
       <Route path="/signup" element={ isAuthenticated ? <Navigate to ="/"/> : <Signup />} />
+      <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/" /> : <ForgotPassword />} />
     </Routes>
   );
 }

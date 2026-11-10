@@ -1,6 +1,5 @@
 import { Link } from "react-router";
 import { getLanguageLabel } from "../../constants/languages";
-import { DIFFICULTY_COLORS } from "../../constants/problem";
 
 const relativeTime = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
 
@@ -21,16 +20,16 @@ function timeAgo(dateString) {
 
 export default function RecentAcList({ items = [] }) {
   return (
-    <section className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl overflow-hidden">
-      <div className="px-5 py-4 flex items-center gap-2 border-b border-[#2a2c31]">
-        <span className="text-[#68b582]">✓</span>
-        <h2 className="text-sm font-semibold text-white">Recent AC</h2>
+    <section className="card overflow-hidden">
+      <div className="px-5 py-3.5 flex items-center gap-2 border-b border-line">
+        <span className="text-success-fg text-body-sm">✓</span>
+        <h2 className="label-caps text-fg-muted">Recent AC</h2>
       </div>
 
       {items.length === 0 ? (
         <div className="py-10 text-center space-y-2">
-          <p className="text-sm text-white font-medium">No accepted submissions yet</p>
-          <Link to="/" className="text-xs text-[#e2a24a] hover:underline">
+          <p className="text-body-md text-fg font-medium">No accepted submissions yet</p>
+          <Link to="/" className="text-body-sm text-primary hover:text-primary-hover hover:underline">
             Find a problem to solve
           </Link>
         </div>
@@ -39,30 +38,30 @@ export default function RecentAcList({ items = [] }) {
           {items.map((item, idx) => (
             <li
               key={item.submissionId || idx}
-              className="flex items-center justify-between gap-3 px-5 py-3 border-t border-[#202226] first:border-t-0 hover:bg-[#202226] transition-colors"
+              className="flex items-center justify-between gap-3 px-5 py-3 border-t border-line-subtle first:border-t-0 hover:bg-surface-hover transition-colors"
             >
               <div className="min-w-0 flex items-center gap-2">
                 {item.problemID ? (
                   <Link
                     to={`/problems/${item.problemID}`}
-                    className="text-sm text-white hover:text-[#e2a24a] font-medium truncate transition-colors"
+                    className="text-body-md text-fg hover:text-primary font-medium truncate transition-colors"
                   >
                     {item.title}
                   </Link>
                 ) : (
-                  <span className="text-sm text-[#9a9ca3] italic">Deleted problem</span>
+                  <span className="text-body-md text-fg-subtle italic">Deleted problem</span>
                 )}
                 {item.difficulty && (
-                  <span className={`text-xs capitalize ${DIFFICULTY_COLORS[item.difficulty] || ""}`}>
+                  <span className={`badge capitalize ${item.difficulty === "easy" || item.difficulty === "medium" || item.difficulty === "hard" ? `badge-${item.difficulty}` : "badge-neutral"}`}>
                     {item.difficulty}
                   </span>
                 )}
               </div>
-              <div className="shrink-0 flex items-center gap-3 text-xs text-[#9a9ca3]">
-                <span className="hidden sm:inline px-2 py-0.5 rounded-full bg-[#202226]">
+              <div className="shrink-0 flex items-center gap-3 text-fg-muted">
+                <span className="hidden sm:inline-flex badge badge-neutral">
                   {getLanguageLabel(item.language)}
                 </span>
-                <span title={new Date(item.solvedAt).toLocaleString()}>{timeAgo(item.solvedAt)}</span>
+                <span className="text-code-sm text-fg-subtle" title={new Date(item.solvedAt).toLocaleString()}>{timeAgo(item.solvedAt)}</span>
               </div>
             </li>
           ))}

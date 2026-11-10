@@ -1,37 +1,26 @@
 const redisClient = require('../config/redis.config');
 
-/**
- * Factory function to create route-specific rate limiters using Redis
- * @param {Object} options
- * @param {string} options.prefix - Redis key prefix (e.g. 'run', 'submit')
- * @param {number} options.limit - Max allowed requests in the time window (e.g. 3)
- * @param {number} options.windowSeconds - Time window in seconds (e.g. 60)
- * @param {string} options.actionName - Human-readable action name for error messages
- */
+// Fixed-window limiter backed by Redis INCR + EXPIRE. windowSeconds is in seconds.
 function createRateLimiter({ prefix, limit = 3, windowSeconds = 60, actionName = "requests" }) {
     return async function rateLimiterMiddleware(req, res, next) {
         try {
-            // Identify user by JWT userId; fallback to IP if not logged in
+            // per user when authenticated, otherwise per IP
             const identifier = req.user?.id || req.ip;
             const key = `ratelimit:${prefix}:${identifier}`;
 
-            // Increment request counter atomically
             const currentCount = await redisClient.incr(key);
 
-            // On the first request in this window, set the expiration TTL
+            // first hit opens the window
             if (currentCount === 1) {
                 await redisClient.expire(key, windowSeconds);
             }
 
-            // Get remaining TTL to inform the client
             const ttl = await redisClient.ttl(key);
 
-            // Set standard rate limiting HTTP headers
             res.setHeader('X-RateLimit-Limit', limit);
             res.setHeader('X-RateLimit-Remaining', Math.max(0, limit - currentCount));
             res.setHeader('X-RateLimit-Reset', ttl > 0 ? ttl : windowSeconds);
 
-            // If limit exceeded, block request with 429
             if (currentCount > limit) {
                 res.setHeader('Retry-After', ttl > 0 ? ttl : windowSeconds);
                 const windowText = windowSeconds % 60 === 0
@@ -45,14 +34,14 @@ function createRateLimiter({ prefix, limit = 3, windowSeconds = 60, actionName =
 
             next();
         } catch (error) {
-            // If Redis is temporarily down, fail open so users aren't blocked
+            // fail open if Redis is down rather than locking everyone out
             console.error("Rate limiter error:", error);
             next();
         }
     };
 }
 
-// Pre-configured limiters for 3 requests / 60 seconds
+// 3 per minute
 const runCodeLimiter = createRateLimiter({
     prefix: 'run',
     limit: 3,
@@ -67,7 +56,7 @@ const submitCodeLimiter = createRateLimiter({
     actionName: 'code submissions',
 });
 
-// send-verify-email rate limiter: 10 requests per 15 minutes
+// 10 per 15 min
 const sendVerifyEmailLimiter = createRateLimiter({
     prefix: 'verify-email-send',
     limit: 10,
@@ -75,7 +64,7 @@ const sendVerifyEmailLimiter = createRateLimiter({
     actionName: 'verification email requests',
 });
 
-// verify-email rate limiter: 5 requests per 15 minutes
+// 5 OTP guesses per 15 min
 const verifyEmailLimiter = createRateLimiter({
     prefix: 'verify-email-check',
     limit: 5,
@@ -83,7 +72,7 @@ const verifyEmailLimiter = createRateLimiter({
     actionName: 'verification attempts',
 });
 
-// login rate limiter: 10 attempts per 15 minutes per IP (brute-force protection)
+// per IP, 10 per 15 min to slow down brute forcing
 const loginLimiter = createRateLimiter({
     prefix: 'login',
     limit: 10,
@@ -91,7 +80,7 @@ const loginLimiter = createRateLimiter({
     actionName: 'login attempts',
 });
 
-// register rate limiter: 5 sign-ups per hour per IP
+// per IP, 5 per hour
 const registerLimiter = createRateLimiter({
     prefix: 'register',
     limit: 5,
@@ -99,7 +88,7 @@ const registerLimiter = createRateLimiter({
     actionName: 'registrations',
 });
 
-// refresh rate limiter: 60 refreshes per 15 minutes per IP (every page load uses one)
+// high limit because every page load does a refresh
 const refreshLimiter = createRateLimiter({
     prefix: 'refresh',
     limit: 60,
@@ -107,11 +96,31 @@ const refreshLimiter = createRateLimiter({
     actionName: 'token refreshes',
 });
 
-// ratelimiter for upload/change avatar(profile photo)
+// per IP, 5 per 15 min
+const forgotPasswordLimiter = createRateLimiter({
+    prefix: 'forgot-password',
+    limit: 5,
+    windowSeconds: 15 * 60,
+    actionName: 'password reset requests',
+});
+
+// per IP; each code also burns itself after 5 misses
+const resetPasswordLimiter = createRateLimiter({
+    prefix: 'reset-password',
+    limit: 10,
+    windowSeconds: 15 * 60,
+    actionName: 'password reset attempts',
+});
+
+// 10 per hour
 const avatarUploadLimiter = createRateLimiter({
     prefix: 'avatar-upload', limit: 10, windowSeconds: 60 * 60, actionName: 'avatar uploads',
 });
 
+// search-as-you-type is debounced client-side; 60 per minute per user
+const userSearchLimiter = createRateLimiter({
+    prefix: 'user-search', limit: 60, windowSeconds: 60, actionName: 'searches',
+});
 
 module.exports = {
     createRateLimiter,
@@ -123,4 +132,7 @@ module.exports = {
     sendVerifyEmailLimiter,
     verifyEmailLimiter,
     avatarUploadLimiter,
+    userSearchLimiter,
+    forgotPasswordLimiter,
+    resetPasswordLimiter,
 };

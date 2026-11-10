@@ -8,11 +8,9 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const toKey = (date) => date.toISOString().slice(0, 10);
 
 function cellColor(count) {
-  if (!count) return "#202226";
-  if (count === 1) return "#1d2a22";
-  if (count <= 3) return "#2c4636";
-  if (count <= 6) return "#3e6a4f";
-  return "#5a9470";
+  if (!count) return "var(--surface-hover)";
+  const percent = count === 1 ? 30 : count <= 3 ? 55 : count <= 6 ? 78 : 100;
+  return `color-mix(in srgb, var(--success) ${percent}%, var(--surface-hover))`;
 }
 
 function buildGrid(calendar) {
@@ -71,24 +69,24 @@ export default function SubmissionHeatmap({ calendar = {} }) {
   const { total, activeDays, maxStreak } = useMemo(() => computeStats(calendar), [calendar]);
 
   return (
-    <section className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl p-5">
+    <section className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
-        <h2 className="text-sm text-[#9a9ca3]">
-          <span className="text-base font-semibold text-white tabular-nums">{total}</span> submissions in the past one year
+        <h2 className="text-body-md font-normal text-fg-muted">
+          <span className="text-code-md font-semibold text-fg">{total}</span> submissions in the past one year
         </h2>
-        <div className="flex gap-4 text-xs text-[#9a9ca3]">
+        <div className="flex gap-4 text-body-sm text-fg-muted">
           <span>
-            Total active days: <span className="font-semibold text-white tabular-nums">{activeDays}</span>
+            Total active days: <span className="text-code-sm font-semibold text-fg">{activeDays}</span>
           </span>
           <span>
-            Max streak: <span className="font-semibold text-white tabular-nums">{maxStreak}</span>
+            Max streak: <span className="text-code-sm font-semibold text-fg">{maxStreak}</span>
           </span>
         </div>
       </div>
 
       <div className="overflow-x-auto pb-1">
         <div className="inline-flex flex-col gap-1.5 min-w-max">
-          <div className="relative h-4 text-[10px] text-[#9a9ca3]">
+          <div className="relative h-4 label-caps text-fg-subtle">
             {monthLabels.map(({ week, label }) => (
               <span key={`${week}-${label}`} className="absolute" style={{ left: week * 16 }}>
                 {label}
@@ -103,7 +101,7 @@ export default function SubmissionHeatmap({ calendar = {} }) {
                     <div
                       key={day.key}
                       title={`${day.count} submission${day.count === 1 ? "" : "s"} on ${day.date.toLocaleDateString(undefined, { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" })}`}
-                      className="w-[13px] h-[13px] rounded-[2px]"
+                      className="w-[13px] h-[13px] rounded-[2px] border border-line/60 hover:outline hover:outline-1 hover:outline-fg-subtle"
                       style={{ backgroundColor: cellColor(day.count) }}
                     />
                   ) : (
@@ -116,10 +114,10 @@ export default function SubmissionHeatmap({ calendar = {} }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1 text-[10px] text-[#9a9ca3]">
+      <div className="mt-3 flex items-center justify-end gap-1 text-code-sm text-fg-subtle">
         <span className="mr-1">Less</span>
         {[0, 1, 2, 4, 7].map((n) => (
-          <span key={n} className="w-[13px] h-[13px] rounded-[2px]" style={{ backgroundColor: cellColor(n) }} />
+          <span key={n} className="w-[13px] h-[13px] rounded-[2px] border border-line/60" style={{ backgroundColor: cellColor(n) }} />
         ))}
         <span className="ml-1">More</span>
       </div>

@@ -508,7 +508,7 @@ async function updateBoilerplates() {
     for (const p of problems) {
       const cpp = cppBoilerplates[p.problemID];
       if (cpp) {
-        // Keep existing python starter code if present
+        // keep the existing python starter code, if any
         const currentPy = p.starterCode?.language === "python" ? p.starterCode.code : null;
 
         const starterCodes = [

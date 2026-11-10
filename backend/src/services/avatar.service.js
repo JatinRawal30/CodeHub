@@ -5,7 +5,7 @@ const { BadRequestError, NotFoundError } = require("../utils/appError");
 // One fixed file per user: a new upload overwrites the old one
 const avatarPublicId = (userId) => `codehub/avatars/${userId}`;
 
-// ③ The "permission slip": the server picks every parameter, the client can't change any
+// signed params: the server picks all of them, the client can't change any
 function getUploadSignature(userId) {
     const params = {
         public_id: avatarPublicId(userId),
@@ -24,7 +24,7 @@ function getUploadSignature(userId) {
     };
 }
 
-// ⑦ Confirm the upload really came from Cloudinary and belongs to this user, then save it
+// check the upload really came from Cloudinary and belongs to this user before saving
 async function saveAvatar(userId, { public_id, version, signature } = {}) {
     if (public_id !== avatarPublicId(userId)) {
         throw new BadRequestError("This upload does not belong to your account");
@@ -46,7 +46,6 @@ async function saveAvatar(userId, { public_id, version, signature } = {}) {
     return { avatar: url };
 }
 
-// "Remove photo"
 async function removeAvatar(userId) {
     await cloudinary.uploader.destroy(avatarPublicId(userId), { invalidate: true });
     await user.findByIdAndUpdate(userId, { $unset: { "profile.avatar": "" } });

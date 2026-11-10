@@ -10,19 +10,17 @@ const authMiddleware = async (req, res, next) => {
 
         const token = authHeader.split(" ")[1];
 
-        // Check if token is blacklisted in Redis
+        // tokens are blacklisted in Redis on logout
         const isBlacklisted = await redisClient.get(`blacklist:${token}`);
         if (isBlacklisted) {
             return res.status(401).json({ message: "Unauthorized: Token has been revoked" });
         }
 
-        // Verify token validity
         const decoded = verifyToken(token);
         if (!decoded || !decoded.id) {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Attaching the payload and token to req
         req.user = decoded;
         req.token = token;
 
@@ -41,24 +39,21 @@ const adminAuthMiddleware = async (req, res, next) => {
 
         const token = authHeader.split(" ")[1];
 
-        // Check if token is blacklisted in Redis
+        // tokens are blacklisted in Redis on logout
         const isBlacklisted = await redisClient.get(`blacklist:${token}`);
         if (isBlacklisted) {
             return res.status(401).json({ message: "Unauthorized: Token has been revoked" });
         }
 
-        // Verify token validity
         const decoded = verifyToken(token);
         if (!decoded || !decoded.id) {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        //verify that the user is admin or not.
         if(decoded.role !=='admin'){
             return res.status(403).json({ message: "Forbidden" });
         }
 
-        // Attaching the payload and token to req
         req.user = decoded;
         req.token = token;
 

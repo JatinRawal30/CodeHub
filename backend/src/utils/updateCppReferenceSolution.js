@@ -649,7 +649,7 @@ async function updateReferenceSolutions() {
           refSolutions.push({ language: "python", completeCode: pyCode });
         }
 
-        // Set C++ as primary reference solution, and keep both in referenceSolutions array
+        // C++ becomes the primary; referenceSolutions keeps both
         p.referenceSolution = {
           language: "cpp",
           completeCode: cppCode,

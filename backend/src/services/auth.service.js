@@ -18,7 +18,7 @@ const toUserResponse = (u) => ({
     email: u.email,
     username: u.username,
     role: u.role,
-    avatar: u.profile?.avatar?.url || null, // matches your new { url, publicId } schema
+    avatar: u.profile?.avatar?.url || null, // avatar is stored as { url, publicId }
 });
 
 const REFRESH_TOKEN_EXPIRY = 60 * 60 * 24 * 7; // 7 days in seconds
@@ -37,9 +37,6 @@ async function createUserOrConflict(userData) {
 }
 
 class AuthService {
-    /**
-     * Register a regular user
-     */
     async register(payload) {
         const validation = userValidation.safeParse(payload);
         if (!validation.success) {
@@ -47,8 +44,8 @@ class AuthService {
         }
 
         const { confirmPassword, ...userData } = validation.data;
-        userData.role = "user"; // Prevent privilege escalation
-        userData.isVerified = false; // by default user email is not verified.
+        userData.role = "user"; // never take role from the request
+        userData.isVerified = false;
         userData.password = await hashPassword(userData.password);
 
         const newUser = await createUserOrConflict(userData);
@@ -60,7 +57,6 @@ class AuthService {
             role: newUser.role,
         });
 
-        // Store refresh token in Redis
         await redisClient.set(`refreshToken:${newUser._id}`, refreshToken, {
             EX: REFRESH_TOKEN_EXPIRY,
         });
@@ -72,9 +68,7 @@ class AuthService {
         };
     }
 
-    /**
-     * Authenticate user with email or username and password
-     */
+    // identifier can be an email or a username
     async login(payload) {
         const validation = loginValidation.safeParse(payload);
         if (!validation.success) {
@@ -118,9 +112,7 @@ class AuthService {
         };
     }
 
-    /**
-     * Log out user: blacklists access token and removes refresh token from Redis
-     */
+    // blacklists the access token until it expires and drops the refresh token
     async logout({ token, userPayload }) {
         if (userPayload && userPayload.exp) {
             const remainingTimeInSeconds = Math.floor(userPayload.exp - Date.now() / 1000);
@@ -136,9 +128,7 @@ class AuthService {
         }
     }
 
-    /**
-     * Refresh access and refresh tokens using Refresh Token Rotation (RTR)
-     */
+    // refresh token rotation: every refresh issues a new pair and replaces the stored refresh token
     async refreshTokens(incomingRefreshToken) {
         if (!incomingRefreshToken) {
             throw new UnauthorizedError("Refresh token missing");
@@ -161,7 +151,6 @@ class AuthService {
             throw new NotFoundError("User not found");
         }
 
-        // Token Rotation: Generate new token pair
         const { token: newAccessToken, refreshToken: newRefreshToken } = generateToken({
             id: existingUser._id,
             email: existingUser.email,
@@ -180,9 +169,6 @@ class AuthService {
         };
     }
 
-    /**
-     * Register an admin user
-     */
     async registerAdmin(payload) {
         const validation = userValidation.safeParse(payload);
         if (!validation.success) {
@@ -203,19 +189,16 @@ class AuthService {
         };
     }
 
-    /**
-     * Cascade delete user profile and clean up cache & submissions
-     */
+    // also removes the user's submissions, avatar and tokens
     async deleteUserProfile({ userId, token, userPayload }) {
         const deletedUser = await user.findByIdAndDelete(userId);
         if (!deletedUser) {
             throw new NotFoundError("User not found");
         }
 
-        // Cascade delete all submissions made by this user
         await Submission.deleteMany({ userId });
 
-        // Delete their profile photo from Cloudinary (never block account deletion on it)
+        // a Cloudinary failure shouldn't block account deletion
         const avatarPublicId = deletedUser.profile?.avatar?.publicId;
         if (avatarPublicId) {
             await cloudinary.uploader
@@ -223,7 +206,6 @@ class AuthService {
                 .catch((error) => console.error("Could not delete avatar from Cloudinary:", error.message));
         }
 
-        // Blacklist current access token in Redis
         if (token && userPayload && userPayload.exp) {
             const remainingTimeInSeconds = Math.floor(userPayload.exp - Date.now() / 1000);
             if (remainingTimeInSeconds > 0) {
@@ -233,7 +215,6 @@ class AuthService {
             }
         }
 
-        // Invalidate stored refresh token in Redis
         await redisClient.del(`refreshToken:${userId}`);
 
         return {

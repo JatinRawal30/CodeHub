@@ -1,6 +1,5 @@
 const problemService = require("../services/problem.service");
 
-// CREATE: Admin creates a new problem
 async function createProblem(req, res) {
     try {
         const problem = await problemService.createProblem(req.body, req.user.id);
@@ -18,7 +17,6 @@ async function createProblem(req, res) {
     }
 }
 
-// UPDATE: Admin updates a problem
 async function updateProblem(req, res) {
     try {
         const { id } = req.params;
@@ -37,7 +35,6 @@ async function updateProblem(req, res) {
     }
 }
 
-// DELETE: Admin deletes a problem
 async function deleteProblem(req, res) {
     try {
         const { id } = req.params;
@@ -53,7 +50,6 @@ async function deleteProblem(req, res) {
     }
 }
 
-// GET BY ID: Get a single problem
 async function getProblemByID(req, res) {
     try {
         const { id } = req.params;
@@ -66,7 +62,6 @@ async function getProblemByID(req, res) {
     }
 }
 
-// GET ALL: List all problems with optional filters and pagination
 async function getAllProblems(req, res) {
     try {
         const { difficulty, tags, page, limit, search } = req.query;
@@ -85,7 +80,7 @@ async function getAllProblems(req, res) {
     }
 }
 
-// GET USER PROBLEMS: Get problems created by logged-in admin
+// problems created by the logged-in admin
 async function getUserProblem(req, res) {
     try {
         const result = await problemService.getUserProblems(req.user.id);
@@ -97,7 +92,6 @@ async function getUserProblem(req, res) {
     }
 }
 
-// GET SOLVED PROBLEMS: Get all problems solved by logged-in user
 async function getSolvedProblems(req, res) {
     try {
         const result = await problemService.getSolvedProblems(req.user.id);

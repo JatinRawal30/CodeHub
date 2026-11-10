@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchSubmissions, getApiErrorMessage } from "../../api/execution";
 import { getLanguageLabel } from "../../constants/languages";
-import { formatMemory, formatRuntime, verdictColor } from "../../constants/problem";
+import { formatMemory, formatRuntime } from "../../constants/problem";
+import { verdictText } from "./verdict";
 
 // `refreshKey` changes after each submission so the list reloads
 export default function SubmissionsList({ problemId, refreshKey, onLoadCode }) {
@@ -36,27 +37,31 @@ export default function SubmissionsList({ problemId, refreshKey, onLoadCode }) {
     return (
       <div className="p-4 space-y-2">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-10 rounded-lg bg-[#202226] animate-pulse" />
+          <div key={i} className="h-10 rounded-md bg-surface-hover animate-pulse" />
         ))}
       </div>
     );
   }
 
   if (error) {
-    return <p className="p-5 text-sm text-[#d47470]">{error}</p>;
+    return (
+      <div className="p-4">
+        <div className="alert alert-error">{error}</div>
+      </div>
+    );
   }
 
   if (submissions.length === 0) {
     return (
-      <div className="p-8 text-center text-sm text-[#9a9ca3]">
-        No submissions yet. Write a solution and press <span className="text-white">Submit</span>.
+      <div className="p-8 text-center text-body-sm text-fg-muted">
+        No submissions yet. Write a solution and press <span className="font-medium text-fg">Submit</span>.
       </div>
     );
   }
 
   return (
-    <div className="text-sm">
-      <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-2 px-4 py-2.5 text-xs font-semibold text-[#9a9ca3] border-b border-[#2a2c31]">
+    <div className="text-body-md">
+      <div className="sticky top-0 grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-2 px-4 py-2 label-caps text-fg-muted bg-surface-alt border-b border-line">
         <span>Status</span>
         <span>Language</span>
         <span>Runtime</span>
@@ -66,41 +71,43 @@ export default function SubmissionsList({ problemId, refreshKey, onLoadCode }) {
       {submissions.map((s) => {
         const isExpanded = expandedId === s._id;
         return (
-          <div key={s._id} className="border-b border-[#202226]">
+          <div key={s._id} className="border-b border-line-subtle">
             <button
               onClick={() => setExpandedId(isExpanded ? null : s._id)}
-              className="w-full grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-2 px-4 py-2.5 text-left hover:bg-[#202226] transition-colors cursor-pointer"
+              className={`w-full grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-2 px-4 py-2.5 text-left hover:bg-surface-hover transition-colors cursor-pointer ${
+                isExpanded ? "bg-surface-alt" : ""
+              }`}
             >
               <span>
-                <span className={`font-medium ${verdictColor(s.verdict)}`}>{s.verdict}</span>
-                <span className="block text-[11px] text-[#767980]">
+                <span className={`font-medium ${verdictText(s.verdict)}`}>{s.verdict}</span>
+                <span className="block text-code-sm font-normal text-fg-subtle">
                   {new Date(s.createdAt).toLocaleString()}
                 </span>
               </span>
-              <span className="text-[#c4c6cb] self-center">{getLanguageLabel(s.language)}</span>
-              <span className="text-[#c4c6cb] self-center">{formatRuntime(s.executionTime)}</span>
-              <span className="text-[#c4c6cb] self-center">{formatMemory(s.memory)}</span>
+              <span className="text-fg-body self-center">{getLanguageLabel(s.language)}</span>
+              <span className="text-code-md font-normal text-fg-body self-center">{formatRuntime(s.executionTime)}</span>
+              <span className="text-code-md font-normal text-fg-body self-center">{formatMemory(s.memory)}</span>
             </button>
 
             {isExpanded && (
-              <div className="px-4 pb-4 space-y-2">
-                <div className="flex items-center justify-between text-xs text-[#9a9ca3]">
-                  <span>
+              <div className="px-4 pb-4 pt-1 space-y-2 bg-surface-alt">
+                <div className="flex items-center justify-between text-body-sm text-fg-muted">
+                  <span className="font-mono tabular-nums">
                     {s.testCasesPassed} / {s.totalTestCases} test cases passed
                   </span>
                   <button
                     onClick={() => onLoadCode(s.language, s.code)}
-                    className="px-2.5 py-1 rounded-md bg-[#2c2e33] text-[#e6e7ea] hover:bg-[#33363c] transition-colors cursor-pointer"
+                    className="btn btn-secondary h-7 px-2.5 text-body-sm"
                   >
                     Load into editor
                   </button>
                 </div>
                 {s.errorMessage && (
-                  <pre className="p-3 rounded-lg bg-[#d47470]/10 text-[#e09a96] text-xs font-mono whitespace-pre-wrap">
+                  <pre className="p-3 rounded-lg border border-danger-line bg-danger-soft text-danger-fg text-code-sm font-normal whitespace-pre-wrap">
                     {s.errorMessage}
                   </pre>
                 )}
-                <pre className="p-3 rounded-lg bg-[#151619] text-[#d4d5d9] text-xs font-mono overflow-x-auto max-h-72">
+                <pre className="p-3 rounded-lg border border-line bg-surface text-fg-body text-code-sm font-normal overflow-x-auto max-h-72">
                   {s.code}
                 </pre>
               </div>
