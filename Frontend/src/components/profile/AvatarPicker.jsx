@@ -8,7 +8,7 @@ import { setAvatar } from "../../store/slices/authSlice";
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_BYTES = 5 * 1024 * 1024; // checked before resizing; the upload itself is much smaller
 
-// Photo picker for the Edit Profile popup. Uploads immediately when a photo is chosen.
+// Uploads as soon as a photo is picked
 export default function AvatarPicker({ avatar, name, onChanged }) {
   const dispatch = useDispatch();
   const inputRef = useRef(null);
@@ -68,16 +68,16 @@ export default function AvatarPicker({ avatar, name, onChanged }) {
   };
 
   return (
-    <div className="flex items-center gap-4 pb-4 mb-4 border-b border-[#2a2c31]">
+    <div className="flex items-center gap-4 pb-4 mb-4 border-b border-line">
       <div className="relative">
         {preview ? (
-          <img src={preview} alt="" className="w-[72px] h-[72px] rounded-xl object-cover border border-[#2e3035] opacity-60" />
+          <img src={preview} alt="" className="w-[72px] h-[72px] rounded-lg object-cover border border-line opacity-60" />
         ) : (
-          <UserAvatar src={avatar} name={name} size={72} className="rounded-xl border border-[#2e3035]" />
+          <UserAvatar src={avatar} name={name} size={72} className="rounded-full border border-line" />
         )}
         {isBusy && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin h-6 w-6 border-2 border-[#e2a24a] border-t-transparent rounded-full" />
+            <span className="spinner w-6 h-6 text-primary" />
           </div>
         )}
       </div>
@@ -88,7 +88,7 @@ export default function AvatarPicker({ avatar, name, onChanged }) {
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={isBusy}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#2c2e33] text-[#e6e7ea] hover:bg-[#33363c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="btn btn-secondary btn-sm"
           >
             {avatar ? "Change photo" : "Upload photo"}
           </button>
@@ -97,13 +97,13 @@ export default function AvatarPicker({ avatar, name, onChanged }) {
               type="button"
               onClick={handleRemove}
               disabled={isBusy}
-              className="px-3 py-1.5 rounded-lg text-xs text-[#9a9ca3] hover:text-[#d47470] hover:bg-[#d47470]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="btn btn-danger-soft btn-sm"
             >
               Remove
             </button>
           )}
         </div>
-        <p className={`text-[11px] ${error ? "text-[#d47470]" : "text-[#767980]"}`}>
+        <p className={`text-body-sm ${error ? "text-danger-fg" : "text-fg-muted"}`}>
           {error || stage || "JPG, PNG or WebP, up to 5 MB."}
         </p>
       </div>

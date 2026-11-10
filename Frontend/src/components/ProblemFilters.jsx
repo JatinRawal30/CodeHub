@@ -6,12 +6,17 @@ export default function ProblemFilters({
   selectedStatus,
   onStatusChange,
 }) {
+  // a select that's narrowing the list gets the primary-soft treatment
+  const selectClass = (isActive) =>
+    `input w-auto h-8 pr-8 text-body-sm cursor-pointer ${
+      isActive ? "bg-primary-soft text-primary-soft-fg border-primary-soft-line" : ""
+    }`;
+
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#18191c] border border-[#2a2c31] p-3 rounded-xl">
-      {/* Search Input */}
+    <div className="card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3">
       <div className="relative flex-1 max-w-md">
         <svg
-          className="w-4 h-4 text-[#9a9ca3] absolute left-3 top-1/2 -translate-y-1/2"
+          className="w-4 h-4 text-fg-subtle absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -28,17 +33,15 @@ export default function ProblemFilters({
           placeholder="Search questions by title or ID..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full bg-[#151619] border border-[#2a2c31] focus:border-[#e2a24a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-[#6b6e76] outline-none transition-colors"
+          className="input pl-9"
         />
       </div>
 
-      {/* Filter Dropdowns */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Difficulty Filter */}
         <select
           value={selectedDifficulty}
           onChange={(e) => onDifficultyChange(e.target.value)}
-          className="bg-[#151619] border border-[#2a2c31] hover:border-[#3a3d44] text-[#c4c6cb] text-xs rounded-lg px-3 py-2 outline-none cursor-pointer transition-colors"
+          className={selectClass(selectedDifficulty !== "all")}
         >
           <option value="all">Difficulty: All</option>
           <option value="easy">Easy</option>
@@ -46,11 +49,10 @@ export default function ProblemFilters({
           <option value="hard">Hard</option>
         </select>
 
-        {/* Status Filter */}
         <select
           value={selectedStatus}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="bg-[#151619] border border-[#2a2c31] hover:border-[#3a3d44] text-[#c4c6cb] text-xs rounded-lg px-3 py-2 outline-none cursor-pointer transition-colors"
+          className={selectClass(selectedStatus !== "all")}
         >
           <option value="all">Status: All</option>
           <option value="solved">Solved</option>

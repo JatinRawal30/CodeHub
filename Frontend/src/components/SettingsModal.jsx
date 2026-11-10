@@ -17,12 +17,11 @@ export default function SettingsModal({
   const avatar = user?.avatar || profile?.avatar || null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#1a1b1f] border border-[#2e3035] rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#2a2c31]">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <svg className="w-5 h-5 text-[#e2a24a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="fixed inset-0 z-50 bg-backdrop backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="card shadow-overlay max-w-md w-full p-6 relative">
+        <div className="flex items-center justify-between pb-4 border-b border-line">
+          <h3 className="text-headline-sm text-fg flex items-center gap-2">
+            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -36,47 +35,44 @@ export default function SettingsModal({
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="text-[#9a9ca3] hover:text-white p-1 rounded-lg hover:bg-[#2a2c31] transition-colors cursor-pointer"
+            className="btn btn-ghost btn-sm btn-icon w-8"
           >
             ✕
           </button>
         </div>
 
-        {/* Profile Info Summary */}
         <div className="py-5 space-y-4 text-sm">
-          <div className="flex items-center gap-4 bg-[#151619] p-3 rounded-xl border border-[#202226]">
-            <UserAvatar src={avatar} name={username} size={48} className="rounded-full border border-[#2e3035]" />
+          <div className="flex items-center gap-4 bg-surface-alt p-3 rounded-lg border border-line">
+            <UserAvatar src={avatar} name={username} size={48} className="rounded-full border border-line" />
             <div className="overflow-hidden">
-              <div className="font-semibold text-white truncate">{displayName}</div>
-              <div className="text-xs text-[#9a9ca3] truncate">@{username}</div>
-              <div className="text-xs text-[#e2a24a] capitalize mt-0.5 font-medium">
+              <div className="font-semibold text-fg truncate">{displayName}</div>
+              <div className="text-body-sm text-fg-muted truncate">@{username}</div>
+              <div className="text-xs text-primary-soft-fg capitalize mt-0.5 font-medium">
                 Role: {role}
               </div>
             </div>
           </div>
 
-          {/* Account Details Table */}
-          <div className="space-y-2.5 text-xs">
-            <div className="flex justify-between py-2 border-b border-[#202226]">
-              <span className="text-[#9a9ca3]">Email</span>
-              <span className="text-white tabular-nums">{email}</span>
+          <div className="space-y-1 text-body-sm">
+            <div className="flex justify-between py-2 border-b border-line-subtle">
+              <span className="text-fg-muted">Email</span>
+              <span className="text-fg">{email}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-[#202226]">
-              <span className="text-[#9a9ca3]">Problems Solved</span>
-              <span className="text-[#e2a24a] font-bold tabular-nums">{totalSolvedCount}</span>
+            <div className="flex justify-between py-2 border-b border-line-subtle">
+              <span className="text-fg-muted">Problems Solved</span>
+              <span className="text-code-md text-fg">{totalSolvedCount}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-[#202226]">
-              <span className="text-[#9a9ca3]">Bio</span>
-              <span className="text-white truncate max-w-[200px]">{bio}</span>
+            <div className="flex justify-between py-2 border-b border-line-subtle">
+              <span className="text-fg-muted">Bio</span>
+              <span className="text-fg truncate max-w-[200px]">{bio}</span>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="pt-4 border-t border-[#2a2c31] flex justify-end">
+        <div className="pt-4 border-t border-line flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-[#e2a24a] hover:bg-[#d39540] text-black font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+            className="btn btn-primary btn-sm"
           >
             Close
           </button>

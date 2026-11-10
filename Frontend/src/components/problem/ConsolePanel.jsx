@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { formatMemory, formatRuntime, verdictColor } from "../../constants/problem";
+import { formatMemory, formatRuntime } from "../../constants/problem";
+import { verdictBadge, verdictText } from "./verdict";
 
 function TabButton({ isActive, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-        isActive ? "text-white bg-[#202226]" : "text-[#9a9ca3] hover:text-white"
+      className={`flex items-center h-7 px-2.5 rounded-md text-body-sm font-medium transition-colors cursor-pointer ${
+        isActive ? "text-fg bg-surface shadow-card ring-1 ring-line" : "text-fg-muted hover:text-fg hover:bg-surface-hover"
       }`}
     >
       {children}
@@ -16,17 +17,17 @@ function TabButton({ isActive, onClick, children }) {
 
 function CaseTabs({ count, active, onSelect, statuses }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="inline-flex flex-wrap gap-0.5 p-0.5 rounded-md bg-canvas-alt border border-line">
       {Array.from({ length: count }, (_, i) => (
         <button
           key={i}
           onClick={() => onSelect(i)}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-            active === i ? "bg-[#2c2e33] text-white" : "text-[#9a9ca3] hover:bg-[#202226]"
+          className={`flex items-center gap-1.5 h-6 px-2.5 rounded text-body-sm font-medium transition-colors cursor-pointer ${
+            active === i ? "bg-surface text-fg shadow-card ring-1 ring-line" : "text-fg-muted hover:text-fg"
           }`}
         >
           {statuses && (
-            <span className={`w-1.5 h-1.5 rounded-full ${statuses[i] ? "bg-[#68b582]" : "bg-[#d47470]"}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${statuses[i] ? "bg-success" : "bg-danger"}`} />
           )}
           Case {i + 1}
         </button>
@@ -36,11 +37,12 @@ function CaseTabs({ count, active, onSelect, statuses }) {
 }
 
 function Field({ label, value, tone = "default" }) {
-  const toneClass = tone === "error" ? "bg-[#d47470]/10 text-[#e09a96]" : "bg-[#202226] text-[#e6e7ea]";
+  const toneClass =
+    tone === "error" ? "bg-danger-soft text-danger-fg border-danger-line" : "bg-terminal text-terminal-fg border-line";
   return (
     <div className="space-y-1.5">
-      <div className="text-xs text-[#9a9ca3]">{label}</div>
-      <pre className={`px-3 py-2 rounded-lg font-mono text-[13px] whitespace-pre-wrap break-words ${toneClass}`}>
+      <div className="label-caps text-fg-muted">{label}</div>
+      <pre className={`px-3 py-2.5 rounded-lg border text-code-md font-normal whitespace-pre-wrap break-words ${toneClass}`}>
         {value === null || value === undefined || value === "" ? " " : value}
       </pre>
     </div>
@@ -49,16 +51,16 @@ function Field({ label, value, tone = "default" }) {
 
 function Spinner({ label }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-[#9a9ca3]">
-      <div className="animate-spin h-4 w-4 border-2 border-[#e2a24a] border-t-transparent rounded-full" />
+    <span className="badge badge-warning gap-2 px-2 py-1">
+      <span className="spinner w-3 h-3 border-[1.5px]" />
       {label}
-    </div>
+    </span>
   );
 }
 
 function TestcaseView({ testCases }) {
   const [active, setActive] = useState(0);
-  if (!testCases?.length) return <p className="text-sm text-[#9a9ca3]">No example test cases.</p>;
+  if (!testCases?.length) return <p className="text-body-sm text-fg-muted">No example test cases.</p>;
 
   const tc = testCases[Math.min(active, testCases.length - 1)];
   return (
@@ -66,7 +68,7 @@ function TestcaseView({ testCases }) {
       <CaseTabs count={testCases.length} active={active} onSelect={setActive} />
       <Field label="Input" value={tc.input} />
       <Field label="Expected Output" value={tc.output} />
-      <p className="text-[11px] text-[#767980]">Run tests your code against these example cases. Submit also runs hidden cases.</p>
+      <p className="text-body-sm text-fg-subtle">Run tests your code against these example cases. Submit also runs hidden cases.</p>
     </div>
   );
 }
@@ -77,14 +79,14 @@ function RunResultView({ data }) {
   if (data.status === "Compilation Error") {
     return (
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-[#d47470]">Compilation Error</h3>
+        <h3 className="text-headline-sm text-danger-fg">Compilation Error</h3>
         <Field label="Compiler output" value={data.error} tone="error" />
       </div>
     );
   }
 
   const results = data.results || [];
-  if (results.length === 0) return <p className="text-sm text-[#9a9ca3]">No test cases were run.</p>;
+  if (results.length === 0) return <p className="text-body-sm text-fg-muted">No test cases were run.</p>;
 
   const allPassed = data.passed === data.totalTests;
   const headline = allPassed ? "Accepted" : results.find((r) => !r.passed)?.status || "Wrong Answer";
@@ -93,10 +95,11 @@ function RunResultView({ data }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline gap-3">
-        <h3 className={`text-lg font-semibold ${verdictColor(headline)}`}>{headline}</h3>
-        <span className="text-xs text-[#9a9ca3]">
-          {data.passed} / {data.totalTests} passed · Runtime: {formatRuntime(maxTime)}
+      <div className="flex items-center gap-3">
+        <h3 className={`text-headline-sm ${verdictText(headline)}`}>{headline}</h3>
+        <span className="text-body-sm text-fg-muted">
+          <span className="font-mono tabular-nums">{data.passed} / {data.totalTests}</span> passed · Runtime:{" "}
+          <span className="font-mono tabular-nums">{formatRuntime(maxTime)}</span>
         </span>
       </div>
       <CaseTabs
@@ -106,7 +109,9 @@ function RunResultView({ data }) {
         statuses={results.map((r) => r.passed)}
       />
       {!current.passed && current.status !== "Wrong Answer" && (
-        <div className={`text-sm font-medium ${verdictColor(current.status)}`}>{current.status}</div>
+        <div>
+          <span className={verdictBadge(current.status)}>{current.status}</span>
+        </div>
       )}
       <Field label="Input" value={current.input} />
       <Field label="Output" value={current.actualOutput} />
@@ -120,22 +125,25 @@ function SubmitResultView({ data }) {
   const isAccepted = data.verdict === "Accepted";
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline gap-3">
-        <h3 className={`text-xl font-semibold ${verdictColor(data.verdict)}`}>{data.verdict}</h3>
-        <span className="text-xs text-[#9a9ca3]">
-          {data.testCasesPassed} / {data.totalTestCases} test cases passed
+      <div className="flex items-center gap-3">
+        <h3 className={`text-headline-md ${verdictText(data.verdict)}`}>{data.verdict}</h3>
+        <span className="text-body-sm text-fg-muted">
+          <span className="font-mono tabular-nums">
+            {data.testCasesPassed} / {data.totalTestCases}
+          </span>{" "}
+          test cases passed
         </span>
       </div>
 
       {isAccepted && (
         <div className="grid grid-cols-2 gap-3 max-w-md">
-          <div className="p-3 rounded-lg bg-[#202226]">
-            <div className="text-xs text-[#9a9ca3]">Runtime</div>
-            <div className="text-lg font-semibold text-white">{formatRuntime(data.executionTime)}</div>
+          <div className="p-3 rounded-lg bg-surface-alt border border-line">
+            <div className="label-caps text-fg-muted">Runtime</div>
+            <div className="mt-1 font-mono tabular-nums text-headline-sm text-fg">{formatRuntime(data.executionTime)}</div>
           </div>
-          <div className="p-3 rounded-lg bg-[#202226]">
-            <div className="text-xs text-[#9a9ca3]">Memory</div>
-            <div className="text-lg font-semibold text-white">{formatMemory(data.memory)}</div>
+          <div className="p-3 rounded-lg bg-surface-alt border border-line">
+            <div className="label-caps text-fg-muted">Memory</div>
+            <div className="mt-1 font-mono tabular-nums text-headline-sm text-fg">{formatMemory(data.memory)}</div>
           </div>
         </div>
       )}
@@ -149,7 +157,7 @@ function SubmitResultView({ data }) {
 export default function ConsolePanel({ testCases, activeTab, onTabChange, result }) {
   let resultContent;
   if (!result) {
-    resultContent = <p className="text-sm text-[#9a9ca3]">You must run or submit your code first.</p>;
+    resultContent = <p className="text-body-sm text-fg-muted">You must run or submit your code first.</p>;
   } else if (result.status === "loading") {
     resultContent = <Spinner label={result.kind === "submit" ? "Judging your submission…" : "Running your code…"} />;
   } else if (result.status === "error") {
@@ -162,12 +170,12 @@ export default function ConsolePanel({ testCases, activeTab, onTabChange, result
 
   return (
     <div className="h-full flex flex-col">
-      <div className="h-10 shrink-0 flex items-center gap-1 px-2 border-b border-[#2a2c31] bg-[#18191c]">
+      <div className="h-9 shrink-0 flex items-center gap-1 px-1.5 border-b border-line bg-surface-alt">
         <TabButton isActive={activeTab === "testcase"} onClick={() => onTabChange("testcase")}>
-          <span className="text-[#68b582] mr-1">✓</span> Testcase
+          <span className="text-success mr-1.5">✓</span>Testcase
         </TabButton>
         <TabButton isActive={activeTab === "result"} onClick={() => onTabChange("result")}>
-          <span className="text-[#68b582] mr-1">{">_"}</span> Test Result
+          <span className="text-primary font-mono text-code-sm mr-1.5">{">_"}</span>Test Result
         </TabButton>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto p-4">

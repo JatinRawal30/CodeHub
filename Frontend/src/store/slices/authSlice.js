@@ -2,9 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/axios";
 import { refreshSession } from "../../api/refresh";
 
-// ─── Async Thunk: checkAuth ──────────────────────────────────────────────────
-// Automatically runs on app startup / page refresh (F5):
-// Sends HTTP-only refreshToken cookie to /api/auth/refresh and gets { accessToken, user }
+// Runs on app load: trades the httpOnly refresh cookie for { accessToken, user }
 export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
   async (_, { rejectWithValue }) => {
@@ -23,7 +21,6 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
-// ─── Async Thunk: fetchUserProfile ──────────────────────────────────────────
 export const fetchUserProfile = createAsyncThunk(
   "auth/fetchUserProfile",
   async (_, { rejectWithValue }) => {
@@ -38,7 +35,6 @@ export const fetchUserProfile = createAsyncThunk(
   }
 );
 
-// ─── Async Thunk: logoutUser ────────────────────────────────────────────────
 export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, { dispatch }) => {
@@ -52,17 +48,15 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-// ─── Initial State ───────────────────────────────────────────────────────────
 const initialState = {
   user: null,             // { id, username, email, role, avatar } from login / refresh
   profile: null,          // { username, name, avatar, bio, solvedStats, ... }
-  accessToken: null,      // In-memory token (no localStorage)
+  accessToken: null,      // memory only, never localStorage
   isAuthenticated: false,
-  isLoading: true,        // True on initial load until checkAuth resolves
+  isLoading: true,        // true until the first checkAuth settles
   error: null,
 };
 
-// ─── Slice ───────────────────────────────────────────────────────────────────
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -102,12 +96,10 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // checkAuth: Pending (checking refresh cookie)
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      // checkAuth: Fulfilled (valid session restored!)
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.accessToken = action.payload.accessToken;
@@ -115,7 +107,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = null;
       })
-      // checkAuth: Rejected (no cookie or session expired)
       .addCase(checkAuth.rejected, (state, action) => {
         state.user = null;
         state.profile = null;
@@ -124,7 +115,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      // fetchUserProfile: Fulfilled
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.profile = action.payload;
       });

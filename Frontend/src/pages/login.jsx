@@ -7,8 +7,8 @@ import { useDispatch } from "react-redux";
 import api from "../api/axios";
 import { setCredentials } from "../store/slices/authSlice";
 import CodeHubLogo from "../components/CodeHubLogo";
+import ThemeToggle from "../components/ThemeToggle";
 
-// ─── Zod Login Schema ───────────────────────────────────────────────────────
 const loginSchema = z.object({
   identifier: z
     .string()
@@ -19,7 +19,6 @@ const loginSchema = z.object({
     .min(1, "Password is required"),
 });
 
-// ─── Login Page (LeetCode Dark Theme) ────────────────────────────────────────
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,8 +28,10 @@ export default function Login() {
   const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Success message if redirected from successful signup
+  // set when signup redirects here
   const registeredSuccess = location.state?.registered;
+  // set when the forgot-password page redirects here
+  const passwordResetSuccess = location.state?.passwordReset;
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
@@ -46,7 +47,7 @@ export default function Login() {
         password: data.password,
       });
 
-      // Save credentials in Redux store (in-memory token, no localStorage)
+      // token is kept in memory only, never localStorage
       if (res.data?.accessToken) {
         dispatch(
           setCredentials({
@@ -56,7 +57,6 @@ export default function Login() {
         );
       }
 
-      // Navigate to homepage / dashboard
       navigate("/");
     } catch (err) {
       const msg =
@@ -70,96 +70,69 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 selection:bg-[#e2a24a] selection:text-black"
-      style={{ backgroundColor: "#121315" }}
-    >
-      <div className="w-full max-w-[440px]">
-        {/* CodeHub Logo */}
-        <div className="text-center mb-7">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-canvas">
+      <ThemeToggle className="fixed top-4 right-4" />
+
+      <div className="w-full max-w-[400px]">
+        <div className="flex flex-col items-center mb-6">
           <CodeHubLogo />
-          <p className="mt-2 text-xs text-[#9a9ca3] tracking-wide">
+          <p className="mt-2 text-body-sm text-fg-muted">
             A New Way to Learn & Master Algorithms
           </p>
         </div>
 
-        {/* LeetCode Elevated Card */}
-        <div
-          className="rounded-xl p-8 transition-all"
-          style={{
-            backgroundColor: "#1a1b1f",
-            border: "1px solid #2a2c31",
-            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)",
-          }}
-        >
-          <h1 className="text-lg font-bold text-white mb-5 tracking-tight">
+        <div className="card p-8">
+          <h1 className="text-headline-sm text-fg mb-5">
             Sign In
           </h1>
 
-          {/* Success banner after registration */}
           {registeredSuccess && !apiError && (
-            <div
-              className="mb-4 px-3.5 py-2.5 rounded-lg text-xs font-medium flex items-center gap-2"
-              style={{
-                backgroundColor: "rgba(95, 179, 159, 0.15)",
-                border: "1px solid rgba(95, 179, 159, 0.3)",
-                color: "#7cc4b2",
-              }}
-            >
-              <span>✓</span>
+            <div className="alert alert-success mb-4" role="status">
+              <span aria-hidden="true">✓</span>
               <span>Account created successfully! Please sign in.</span>
             </div>
           )}
 
-          {/* API Error Message */}
+          {passwordResetSuccess && !apiError && (
+            <div className="alert alert-success mb-4" role="status">
+              <span aria-hidden="true">✓</span>
+              <span>Password reset. Please sign in with your new password.</span>
+            </div>
+          )}
+
           {apiError && (
-            <div
-              className="mb-4 px-3.5 py-2.5 rounded-lg text-xs font-medium flex items-center gap-2"
-              style={{
-                backgroundColor: "rgba(212, 116, 112, 0.15)",
-                border: "1px solid rgba(212, 116, 112, 0.3)",
-                color: "#e09a96",
-              }}
-            >
-              <span>⚠</span>
+            <div className="alert alert-error mb-4" role="alert">
+              <span aria-hidden="true">⚠</span>
               <span>{apiError}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Username or Email */}
             <div>
-              <label className="block text-xs font-medium mb-1.5 text-[#a0a2a8]">
+              <label className="block text-body-sm font-medium text-fg-body mb-1.5">
                 Username or E-mail
               </label>
               <input
                 type="text"
                 placeholder="Username or E-mail"
                 {...register("identifier")}
-                className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#6b6e76] outline-none transition-all duration-200"
-                style={{
-                  backgroundColor: "#202226",
-                  border: `1px solid ${errors.identifier ? "#d47470" : "#2e3035"}`,
-                }}
-                onFocus={(e) => !errors.identifier && (e.target.style.borderColor = "#e2a24a")}
-                onBlur={(e) => !errors.identifier && (e.target.style.borderColor = "#2e3035")}
+                className={`input ${errors.identifier ? "input-error" : ""}`}
               />
               {errors.identifier && (
-                <p className="mt-1 text-[11px]" style={{ color: "#d47470" }}>
+                <p className="mt-1.5 text-body-sm text-danger-fg">
                   {errors.identifier.message}
                 </p>
               )}
             </div>
 
-            {/* Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-medium text-[#a0a2a8]">
+                <label className="block text-body-sm font-medium text-fg-body">
                   Password
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-[11px] text-[#7c7f86] hover:text-[#e2a24a] transition-colors"
+                  className="text-body-sm text-fg-muted hover:text-primary transition-colors"
                 >
                   Forgot Password?
                 </Link>
@@ -169,64 +142,31 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   {...register("password")}
-                  className="w-full px-3 py-2.5 pr-12 rounded-lg text-sm text-white placeholder-[#6b6e76] outline-none transition-all duration-200"
-                  style={{
-                    backgroundColor: "#202226",
-                    border: `1px solid ${errors.password ? "#d47470" : "#2e3035"}`,
-                  }}
-                  onFocus={(e) => !errors.password && (e.target.style.borderColor = "#e2a24a")}
-                  onBlur={(e) => !errors.password && (e.target.style.borderColor = "#2e3035")}
+                  className={`input pr-14 ${errors.password ? "input-error" : ""}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#9a9ca3] hover:text-[#e6e7ea] transition-colors cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2 rounded text-body-sm font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-[11px]" style={{ color: "#d47470" }}>
+                <p className="mt-1.5 text-body-sm text-danger-fg">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
-            {/* LeetCode Orange Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 rounded-lg font-semibold text-sm mt-3 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
-              style={{
-                backgroundColor: isLoading ? "#2c2e33" : "#e2a24a",
-                color: isLoading ? "#7c7f86" : "#121315",
-                cursor: isLoading ? "not-allowed" : "pointer",
-                boxShadow: isLoading ? "none" : "0 2px 8px rgba(226, 162, 74, 0.2)",
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) e.currentTarget.style.backgroundColor = "#d39540";
-              }}
-              onMouseLeave={(e) => {
-                if (!isLoading) e.currentTarget.style.backgroundColor = "#e2a24a";
-              }}
+              className="btn btn-primary btn-lg w-full mt-2"
             >
               {isLoading ? (
                 <>
-                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    />
-                  </svg>
+                  <span className="spinner" aria-hidden="true" />
                   <span>Signing In...</span>
                 </>
               ) : (
@@ -235,34 +175,30 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ backgroundColor: "#2c2e33" }} />
-            <span className="text-xs text-[#7c7f86]">or</span>
-            <div className="flex-1 h-px" style={{ backgroundColor: "#2c2e33" }} />
+            <div className="divider flex-1" />
+            <span className="text-body-sm text-fg-subtle">or</span>
+            <div className="divider flex-1" />
           </div>
 
-          {/* Link to Signup */}
-          <p className="text-center text-xs text-[#9a9ca3]">
+          <p className="text-center text-body-sm text-fg-muted">
             Don&apos;t have an account?{" "}
             <Link
               to="/signup"
-              className="font-medium hover:underline transition-colors"
-              style={{ color: "#e2a24a" }}
+              className="font-medium text-primary hover:text-primary-hover hover:underline transition-colors"
             >
               Sign Up
             </Link>
           </p>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-[11px] mt-6 text-[#6b6e76]">
+        <p className="text-center text-[12px] leading-4 mt-6 text-fg-subtle">
           This site is protected by reCAPTCHA and the Google{" "}
-          <span className="cursor-pointer hover:underline text-[#7c7f86]">
+          <span className="cursor-pointer hover:underline text-fg-muted">
             Privacy Policy
           </span>{" "}
           and{" "}
-          <span className="cursor-pointer hover:underline text-[#7c7f86]">
+          <span className="cursor-pointer hover:underline text-fg-muted">
             Terms of Service
           </span>{" "}
           apply.

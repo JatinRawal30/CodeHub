@@ -5,7 +5,6 @@ const { runCodeLimiter, submitCodeLimiter } = require('../middleware/rateLimiter
 
 const executionRouter = express.Router();
 
-// Require authenticated user
 executionRouter.post('/run', authMiddleware, runCodeLimiter, runCode);
 executionRouter.post('/submit', authMiddleware, submitCodeLimiter, submitCode);
 executionRouter.get('/submissions/:pId', authMiddleware, getUserSubmissionsForProblem);

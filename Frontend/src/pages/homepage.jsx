@@ -14,30 +14,25 @@ export default function Homepage() {
   const location = useLocation();
   const { user, profile } = useSelector((state) => state.auth);
 
-  // Active top-nav tab: 'problems' (default), 'contest', 'chat'.
-  // Other pages (e.g. the profile) can open a tab via navigate("/", { state: { section } })
+  // 'problems' | 'contest' | 'chat'.
+  // Other pages can open a tab via navigate("/", { state: { section } })
   const [activeSection, setActiveSection] = useState(location.state?.section || "problems");
 
-  // Problems & Solved State
   const [problems, setProblems] = useState([]);
   const [solvedProblemIds, setSolvedProblemIds] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProblems, setTotalProblems] = useState(0);
   const limit = 10;
 
-  // Settings Modal State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Fetch solved problem IDs once on mount
   useEffect(() => {
     let isMounted = true;
     async function loadSolved() {
@@ -62,7 +57,6 @@ export default function Homepage() {
     };
   }, [dispatch]);
 
-  // Fetch paginated problems when currentPage, selectedDifficulty, or searchQuery changes
   useEffect(() => {
     let isMounted = true;
 
@@ -112,7 +106,7 @@ export default function Homepage() {
     };
   }, [currentPage, selectedDifficulty, searchQuery]);
 
-  // Reset to page 1 on search or difficulty change
+  // a new search or difficulty starts back at page 1
   const handleSearchChange = (val) => {
     setSearchQuery(val);
     setCurrentPage(1);
@@ -123,7 +117,7 @@ export default function Homepage() {
     setCurrentPage(1);
   };
 
-  // Filter problems for solved/unsolved status
+  // solved/unsolved is filtered client-side, on the current page only
   const filteredProblems = useMemo(() => {
     return problems.filter((prob) => {
       const isSolved = solvedProblemIds.has(prob._id?.toString());
@@ -140,49 +134,44 @@ export default function Homepage() {
     profile?.solvedStats?.totalSolved ?? solvedProblemIds.size;
 
   return (
-    <div className="min-h-screen bg-[#121315] text-[#e6e7ea] flex flex-col font-leetcode antialiased">
-      {/* 1. Navigation Bar */}
+    <div className="min-h-screen bg-dot-grid text-fg-body flex flex-col">
       <Navbar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
-      {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
         {activeSection === "problems" && (
           <div className="space-y-6">
-            {/* 2. Welcome & Stats Quick Glance Banner */}
-            <div className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="card p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
-                <h1 className="text-xl font-bold text-white">
-                  Welcome to CodeHub
+                <h1 className="text-headline-md text-fg">
+                  Welcome to Code<span className="text-warning">Hub</span>
                 </h1>
-                <p className="text-sm text-[#9a9ca3] mt-1">
+                <p className="text-body-md text-fg-muted mt-1">
                   Practice coding interview questions, sharpen algorithmic skills, and compete with peers.
                 </p>
               </div>
 
-              {/* Solved & Total Count Summary */}
-              <div className="flex items-center gap-3 bg-[#151619] border border-[#202226] px-4 py-2.5 rounded-xl">
+              <div className="flex items-center gap-3 bg-surface-alt border border-line px-4 py-2.5 rounded-md">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5fb39f] animate-pulse" />
-                  <span className="text-xs text-[#9a9ca3]">Solved:</span>
-                  <span className="text-sm font-bold text-white tabular-nums">
+                  <div className="w-2 h-2 rounded-full bg-success" />
+                  <span className="text-body-sm text-fg-muted">Solved:</span>
+                  <span className="text-code-md text-fg">
                     {totalSolvedCount}
                   </span>
                 </div>
-                <div className="h-4 w-[1px] bg-[#2a2c31]" />
-                <div className="text-xs text-[#9a9ca3]">
+                <div className="h-4 w-px bg-line" />
+                <div className="text-body-sm text-fg-muted">
                   Total Available:{" "}
-                  <span className="text-white font-semibold tabular-nums">
+                  <span className="text-code-md text-fg">
                     {totalProblems || problems.length}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* 3. Filter & Search Toolbar Component */}
             <ProblemFilters
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
@@ -192,8 +181,7 @@ export default function Homepage() {
               onStatusChange={setSelectedStatus}
             />
 
-            {/* 4. Problems Table & Pagination Container */}
-            <div className="bg-[#18191c] border border-[#2a2c31] rounded-xl overflow-hidden shadow-lg">
+            <div className="card overflow-hidden">
               <ProblemTable
                 problems={filteredProblems}
                 solvedProblemIds={solvedProblemIds}
@@ -206,8 +194,6 @@ export default function Homepage() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                totalProblems={totalProblems}
-                limit={limit}
                 isLoading={isLoading}
                 onPageChange={setCurrentPage}
               />
@@ -215,36 +201,34 @@ export default function Homepage() {
           </div>
         )}
 
-        {/* 5. Contest Tab */}
         {activeSection === "contest" && (
-          <div className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl p-8 text-center max-w-2xl mx-auto my-12 space-y-4">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#e2a24a]/10 border border-[#e2a24a]/20 flex items-center justify-center text-2xl text-[#e2a24a]">
+          <div className="card p-8 text-center max-w-2xl mx-auto my-12 space-y-4">
+            <div className="w-14 h-14 mx-auto rounded-lg bg-primary-soft border border-primary-soft-line flex items-center justify-center text-2xl">
               🏆
             </div>
-            <h2 className="text-2xl font-bold text-white">Contests Arena</h2>
-            <p className="text-sm text-[#9a9ca3] leading-relaxed">
+            <h2 className="text-headline-md text-fg">Contests Arena</h2>
+            <p className="text-body-md text-fg-muted">
               Weekly and Biweekly coding challenges with real-time global leaderboard and ratings will be hosted here.
             </p>
             <div className="pt-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold text-[#e2a24a] bg-[#e2a24a]/10 border border-[#e2a24a]/30">
+              <span className="badge badge-info">
                 Coming Soon
               </span>
             </div>
           </div>
         )}
 
-        {/* 6. Chat Room Tab */}
         {activeSection === "chat" && (
-          <div className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl p-8 text-center max-w-2xl mx-auto my-12 space-y-4">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#5fb39f]/10 border border-[#5fb39f]/20 flex items-center justify-center text-2xl text-[#5fb39f]">
+          <div className="card p-8 text-center max-w-2xl mx-auto my-12 space-y-4">
+            <div className="w-14 h-14 mx-auto rounded-lg bg-success-soft border border-success-line flex items-center justify-center text-2xl">
               💬
             </div>
-            <h2 className="text-2xl font-bold text-white">CodeHub Chat Room</h2>
-            <p className="text-sm text-[#9a9ca3] leading-relaxed">
+            <h2 className="text-headline-md text-fg">CodeHub Chat Room</h2>
+            <p className="text-body-md text-fg-muted">
               Connect in real-time with fellow coders, discuss problems, share optimal algorithms, and pair program.
             </p>
             <div className="pt-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold text-[#5fb39f] bg-[#5fb39f]/10 border border-[#5fb39f]/30">
+              <span className="badge badge-success">
                 Live Discussion Space
               </span>
             </div>
@@ -252,7 +236,6 @@ export default function Homepage() {
         )}
       </main>
 
-      {/* 7. Settings Modal Component */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}

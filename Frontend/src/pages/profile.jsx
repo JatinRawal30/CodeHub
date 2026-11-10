@@ -15,14 +15,14 @@ import { fetchUserProfile } from "../store/slices/authSlice";
 function ProfileSkeleton() {
   return (
     <div className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)] items-start animate-pulse">
-      <div className="h-[520px] rounded-xl bg-[#1a1b1f] border border-[#2a2c31]" />
+      <div className="h-[520px] card" />
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="h-52 rounded-xl bg-[#1a1b1f] border border-[#2a2c31]" />
-          <div className="h-52 rounded-xl bg-[#1a1b1f] border border-[#2a2c31]" />
+          <div className="h-52 card" />
+          <div className="h-52 card" />
         </div>
-        <div className="h-44 rounded-xl bg-[#1a1b1f] border border-[#2a2c31]" />
-        <div className="h-64 rounded-xl bg-[#1a1b1f] border border-[#2a2c31]" />
+        <div className="h-44 card" />
+        <div className="h-64 card" />
       </div>
     </div>
   );
@@ -75,7 +75,7 @@ export default function ProfilePage() {
   const closeEdit = useCallback(() => setIsEditOpen(false), []);
 
   return (
-    <div className="min-h-screen bg-[#121315] text-[#e6e7ea] flex flex-col font-leetcode antialiased">
+    <div className="min-h-screen bg-canvas text-fg-body flex flex-col font-sans antialiased">
       <Navbar
         activeSection={null}
         onSectionChange={(section) => navigate("/", { state: { section } })}
@@ -86,9 +86,9 @@ export default function ProfilePage() {
         {isLoading && !profile ? (
           <ProfileSkeleton />
         ) : error ? (
-          <div className="bg-[#1a1b1f] border border-[#2a2c31] rounded-xl p-10 text-center space-y-3 max-w-lg mx-auto mt-12">
-            <p className="text-white font-medium">{error}</p>
-            <Link to="/" className="text-sm text-[#e2a24a] hover:underline">
+          <div className="card p-10 text-center space-y-3 max-w-lg mx-auto mt-12">
+            <p className="text-body-md text-fg font-medium">{error}</p>
+            <Link to="/" className="text-body-sm text-primary hover:text-primary-hover hover:underline">
               Back to problems
             </Link>
           </div>

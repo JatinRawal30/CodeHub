@@ -11,7 +11,7 @@ export default function UserAvatar({ src, name, size = 32, className = "" }) {
     return (
       <div
         style={{ ...box, fontSize: Math.round(size * 0.4) }}
-        className={`shrink-0 flex items-center justify-center bg-[#151619] font-bold text-[#e2a24a] select-none ${className}`}
+        className={`shrink-0 flex items-center justify-center bg-primary-soft font-semibold text-primary-soft-fg select-none ${className}`}
         aria-label={name}
       >
         {name?.charAt(0).toUpperCase() || "?"}
@@ -27,7 +27,7 @@ export default function UserAvatar({ src, name, size = 32, className = "" }) {
       height={size}
       style={box}
       onError={() => setFailedSrc(src)}
-      className={`shrink-0 object-cover ${className}`}
+      className={`shrink-0 object-cover bg-surface-hover ${className}`}
     />
   );
 }

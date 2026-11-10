@@ -1,6 +1,6 @@
 const executionService = require("../services/execution.service");
 
-// RUN: Execute against visible test cases in batch mode (no DB save)
+// Visible test cases only; nothing is saved
 async function runCode(req, res) {
     try {
         const result = await executionService.runCode(req.body);
@@ -26,7 +26,7 @@ async function runCode(req, res) {
     }
 }
 
-// SUBMIT: Write "Pending" + enqueue judge job -> 202 with submissionId (poll /result/:submissionId)
+// Saves a Pending submission and queues the judge job. Returns 202; client polls /result/:submissionId
 async function submitCode(req, res) {
     try {
         const result = await executionService.submitCode(req.body, req.user.id);
@@ -41,7 +41,6 @@ async function submitCode(req, res) {
     }
 }
 
-// GET SUBMISSIONS: Fetch all submissions by authenticated user for a specific problem (newest first)
 async function getUserSubmissionsForProblem(req, res) {
     try {
         const userId = req.user.id;
@@ -56,7 +55,7 @@ async function getUserSubmissionsForProblem(req, res) {
     }
 }
 
-// GET RESULT: Current verdict of one submission (Pending until the worker finishes)
+// Stays Pending until the worker finishes
 async function getSubmissionResult(req, res) {
     try {
         const submission = await executionService.getSubmissionResult(req.params.submissionId, req.user.id);

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-// schema for the user collection of leetcode Db.
 
 const userSchema =new Schema({
     firstName:{
@@ -47,7 +46,7 @@ const userSchema =new Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
-    problemsSolved:{        // we are storing the problem _id's in this array.
+    problemsSolved:{        // Problem _ids
         type: [{
             type: Schema.Types.ObjectId,
             ref: 'Problem',

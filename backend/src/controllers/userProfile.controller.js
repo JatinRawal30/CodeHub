@@ -7,7 +7,6 @@ const REFRESH_COOKIE_OPTIONS = {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
 };
 
-// GET /api/user/profile — Full private profile for the logged-in user
 async function getMyProfile(req, res) {
     try {
         const profile = await userService.getMyProfile(req.user.id);
@@ -18,7 +17,7 @@ async function getMyProfile(req, res) {
     }
 }
 
-// GET /api/user/:username — Public profile (anyone can view)
+// public, no auth
 async function getPublicProfile(req, res) {
     try {
         const { username } = req.params;
@@ -30,7 +29,16 @@ async function getPublicProfile(req, res) {
     }
 }
 
-// PUT /api/user/profile — Update the logged-in user's own profile
+async function searchUsers(req, res) {
+    try {
+        const users = await userService.searchUsers(req.query.q);
+        return res.status(200).json({ users });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({ error: error.message });
+    }
+}
+
 async function updateMyProfile(req, res) {
     try {
         const updatedProfile = await userService.updateMyProfile(req.user.id, req.body);
@@ -47,13 +55,12 @@ async function updateMyProfile(req, res) {
     }
 }
 
-//change password in profile section.
 async function changePassword(req, res) {
     try {
         const { accessToken, refreshToken } = await userService.changePassword(req.user.id, req.body);
 
-        // Clear the old refresh token cookie, then set the new one
-        // This keeps the current device logged in while invalidating all other sessions
+        // Swap in the new refresh cookie so this device stays logged in;
+        // every other session is invalidated by the password change
         res.clearCookie("refreshToken", { httpOnly: true, secure: false, sameSite: "strict" });
         res.cookie("refreshToken", refreshToken, REFRESH_COOKIE_OPTIONS);
 
@@ -73,6 +80,7 @@ async function changePassword(req, res) {
 module.exports = {
     getMyProfile,
     getPublicProfile,
+    searchUsers,
     updateMyProfile,
     changePassword
 };

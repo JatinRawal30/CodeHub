@@ -7,7 +7,6 @@ const REFRESH_COOKIE_OPTIONS = {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
 };
 
-// Register or Signup User
 async function registerUser(req, res) {
     try {
         const { accessToken, refreshToken } = await authService.register(req.body);
@@ -26,7 +25,6 @@ async function registerUser(req, res) {
     }
 }
 
-// Login
 async function login(req, res) {
     try {
         const { identifier, password } = req.body;
@@ -47,7 +45,6 @@ async function login(req, res) {
     }
 }
 
-// Logout
 async function logout(req, res) {
     try {
         await authService.logout({
@@ -68,7 +65,7 @@ async function logout(req, res) {
     }
 }
 
-// Refresh access and refresh token
+// rotates both tokens
 async function refreshAccessToken(req, res) {
     try {
         const incomingRefreshToken = req.cookies.refreshToken;
@@ -89,7 +86,6 @@ async function refreshAccessToken(req, res) {
     }
 }
 
-// Admin register
 async function adminRegister(req, res) {
     try {
         const admin = await authService.registerAdmin(req.body);
@@ -107,7 +103,6 @@ async function adminRegister(req, res) {
     }
 }
 
-// Delete user profile
 async function deleteProfile(req, res) {
     try {
         const deletedUser = await authService.deleteUserProfile({

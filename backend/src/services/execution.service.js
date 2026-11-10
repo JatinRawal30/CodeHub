@@ -8,9 +8,7 @@ const { BadRequestError, NotFoundError } = require("../utils/appError");
 const { submissionQueue } = require("../queues/submission.queue");
 
 class ExecutionService {
-    /**
-     * Resolves a problem document from either an ObjectId or numeric problemID (#1, #2)
-     */
+    // accepts either an ObjectId or the numeric problemID (1, 2, ...)
     async resolveProblem(problemIdentifier) {
         if (!problemIdentifier) {
             throw new BadRequestError("Problem identifier is required");
@@ -30,17 +28,12 @@ class ExecutionService {
         throw new NotFoundError("Problem not found");
     }
 
-    /**
-     * Resolves a problem ObjectId from either an ObjectId or numeric problemID
-     */
     async resolveProblemId(problemIdentifier) {
         const problem = await this.resolveProblem(problemIdentifier);
         return problem._id;
     }
 
-    /**
-     * Run code against visible test cases in batch (no database persistence)
-     */
+    // visible test cases only, nothing is saved
     async runCode(payload) {
         const validation = executionValidation.safeParse(payload);
         if (!validation.success) {
@@ -54,7 +47,6 @@ class ExecutionService {
         const testCases = problem.visibleTestCases || [];
         const inputs = testCases.map((tc) => tc.input);
 
-        // Run all visible test cases in parallel batch via Judge0 / Piston
         const batchResults = await executeBatch(
             language,
             code,
@@ -63,7 +55,7 @@ class ExecutionService {
             problem.memoryLimit || 256
         );
 
-        // Check for compilation error across the batch
+        // Judge0 status 6 = Compilation Error
         const compError = batchResults.find((r) => r.statusId === 6);
         if (compError) {
             return {
@@ -123,10 +115,7 @@ class ExecutionService {
         };
     }
 
-    /**
-     * Submit code: write "Pending" -> enqueue a judge job -> return immediately.
-     * The verdict is filled in later by the submission worker (judgeSubmission).
-     */
+    // saves a Pending submission and queues it; the worker fills in the verdict later (judgeSubmission)
     async submitCode(payload, userId) {
         const validation = executionValidation.safeParse(payload);
         if (!validation.success) {
@@ -136,17 +125,17 @@ class ExecutionService {
         const { problemId, language, code } = validation.data;
         const problem = await this.resolveProblem(problemId);
 
-        // 1️⃣ WRITE FIRST: Save initial submission with "Pending" status
+        // save before queueing: the worker loads the submission by id
         const submission = await Submission.create({
             userId,
-            problemId: problem._id, // Canonical MongoDB ObjectId
+            problemId: problem._id,
             language,
             code,
             verdict: "Pending",
             totalTestCases: problem.visibleTestCases.length + problem.hiddenTestCases.length,
         });
 
-        // 2️⃣ ENQUEUE: jobId = submissionId, so the same submission is never queued twice
+        // jobId = submissionId, so the same submission is never queued twice
         const submissionId = submission._id.toString();
         try {
             await submissionQueue.add("judge", { submissionId }, { jobId: submissionId });
@@ -164,15 +153,11 @@ class ExecutionService {
         };
     }
 
-    /**
-     * Judge a queued submission (called by the submission worker):
-     * execute batch on Judge0 -> evaluate verdict -> update DB.
-     * Judge0/network errors are re-thrown so BullMQ retries the job.
-     */
+    // called by the submission worker. Judge0/network errors are rethrown so BullMQ retries the job.
     async judgeSubmission(submissionId) {
         const submission = await Submission.findById(submissionId);
 
-        // Already judged (e.g. a retry after the result was saved) -> nothing to do
+        // already judged, e.g. a retry after the result was saved
         if (!submission || submission.verdict !== "Pending") {
             return;
         }
@@ -191,7 +176,6 @@ class ExecutionService {
         ];
         const inputs = allTestCases.map((tc) => tc.input);
 
-        // 3️⃣ EXECUTE: Send batch to Judge0
         const batchResults = await executeBatch(
             submission.language,
             submission.code,
@@ -213,14 +197,13 @@ class ExecutionService {
             if (resp.time) maxTime = Math.max(maxTime, resp.time);
             if (resp.memory) maxMemory = Math.max(maxMemory, resp.memory);
 
-            // Compilation Error
+            // Judge0 status ids: 5 = TLE, 6 = compile error, 7+ = runtime errors
             if (resp.statusId === 6) {
                 verdict = "Compilation Error";
                 errorMessage = resp.compileOutput || resp.stderr;
                 break;
             }
 
-            // Time Limit Exceeded
             if (resp.statusId === 5) {
                 if (verdict === "Accepted") {
                     verdict = "Time Limit Exceeded";
@@ -229,7 +212,6 @@ class ExecutionService {
                 continue;
             }
 
-            // Runtime Error
             if (resp.statusId >= 7 || (resp.stderr && !resp.stdout)) {
                 if (verdict === "Accepted") {
                     verdict = "Runtime Error";
@@ -238,7 +220,6 @@ class ExecutionService {
                 continue;
             }
 
-            // Output Check
             const actualOutput = (resp.stdout || "").trim();
             const expectedOutput = (testCase.output || "").trim();
 
@@ -249,7 +230,6 @@ class ExecutionService {
             }
         }
 
-        // 4️⃣ UPDATE SUBMISSION: Update document with final evaluation
         submission.verdict = verdict;
         submission.testCasesPassed = testCasesPassed;
         submission.totalTestCases = allTestCases.length;
@@ -258,7 +238,6 @@ class ExecutionService {
         submission.errorMessage = errorMessage;
         await submission.save();
 
-        // 5️⃣ If Accepted, update user's solved problems
         if (verdict === "Accepted") {
             await user.findByIdAndUpdate(submission.userId, {
                 $addToSet: { problemsSolved: problem._id },
@@ -266,9 +245,7 @@ class ExecutionService {
         }
     }
 
-    /**
-     * Fetch one submission's current status/result (only the owner can see it)
-     */
+    // only the owner can see it
     async getSubmissionResult(submissionId, userId) {
         if (!mongoose.isValidObjectId(submissionId)) {
             throw new BadRequestError("Invalid submission id");
@@ -285,9 +262,6 @@ class ExecutionService {
         return submission;
     }
 
-    /**
-     * Fetch all submissions by a user for a specific problem (newest first)
-     */
     async getUserSubmissions(userId, problemIdentifier) {
         const targetProblemId = await this.resolveProblemId(problemIdentifier);
 

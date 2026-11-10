@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import CodeHubLogo from "../CodeHubLogo";
+import ThemeToggle from "../ThemeToggle";
 
 function ButtonSpinner() {
   return (
@@ -15,13 +16,13 @@ export default function ProblemHeader({ onRun, onSubmit, isRunning, isSubmitting
   const shortcutKey = navigator.platform?.toLowerCase().includes("mac") ? "⌘" : "Ctrl";
 
   return (
-    <header className="h-12 shrink-0 flex items-center justify-between px-4 bg-[#1a1b1f] border-b border-[#2a2c31]">
-      {/* Left: logo + back to list */}
+    // 1fr | auto | 1fr keeps Run/Submit centered whatever the side widths are
+    <header className="h-12 shrink-0 grid grid-cols-[1fr_auto_1fr] items-center px-4 bg-surface border-b border-line">
       <div className="flex items-center gap-4">
-        <CodeHubLogo size="sm" showText={false} />
+        <CodeHubLogo size="sm" />
         <Link
           to="/"
-          className="flex items-center gap-1.5 text-sm text-[#c4c6cb] hover:text-white transition-colors"
+          className="flex items-center gap-1.5 h-8 px-2 -ml-2 rounded-md text-body-md font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -30,30 +31,30 @@ export default function ProblemHeader({ onRun, onSubmit, isRunning, isSubmitting
         </Link>
       </div>
 
-      {/* Center: Run / Submit */}
       <div className="flex items-center gap-2">
         <button
           onClick={onRun}
           disabled={isBusy}
           title={`Run (${shortcutKey} + ')`}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium bg-[#2c2e33] text-[#e6e7ea] hover:bg-[#33363c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="btn btn-secondary btn-sm gap-1.5"
         >
-          {isRunning ? <ButtonSpinner /> : <span className="text-xs">▶</span>}
+          {isRunning ? <ButtonSpinner /> : <span className="text-[10px] text-fg-muted">▶</span>}
           Run
         </button>
         <button
           onClick={onSubmit}
           disabled={isBusy}
           title={`Submit (${shortcutKey} + Enter)`}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-[#68b582]/15 text-[#68b582] hover:bg-[#68b582]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="btn btn-accent btn-sm gap-1.5"
         >
           {isSubmitting && <ButtonSpinner />}
           Submit
         </button>
       </div>
 
-      {/* Right: spacer keeps the buttons centered */}
-      <div className="w-[140px]" />
+      <div className="flex justify-end">
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

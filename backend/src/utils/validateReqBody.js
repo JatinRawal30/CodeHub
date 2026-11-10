@@ -1,8 +1,5 @@
 const { z } = require("zod");
 
-// -------------------------------------------------------------
-// USER VALIDATION
-// -------------------------------------------------------------
 const userValidation = z.object({
     firstName: z.string().min(3, "First name must be at least 3 characters").max(20, "First name cannot exceed 20 characters"),
     lastName: z.string().min(3, "Last name must be at least 3 characters").max(20, "Last name cannot exceed 20 characters").optional(),
@@ -33,9 +30,6 @@ const loginValidation = z.object({
     password: z.string().min(1, "Password is required").max(128),
 });
 
-// -------------------------------------------------------------
-// PROBLEM VALIDATION
-// -------------------------------------------------------------
 const TAG_ENUM = [
     'arrays', 'strings', 'dynamic programming', 'trees', 'graphs',
     'linked list', 'hash table', 'sorting', 'searching', 'recursion',
@@ -87,9 +81,6 @@ const createProblemValidation = z.object({
 
 const updateProblemValidation = createProblemValidation.omit({ problemID: true }).partial();
 
-// -------------------------------------------------------------
-// CODE EXECUTION & SUBMISSION VALIDATION
-// -------------------------------------------------------------
 const executionValidation = z.object({
     problemId: z.union([
         z.number().int().positive(),
@@ -106,9 +97,6 @@ const executionValidation = z.object({
 });
 
 
-// -------------------------------------------------------------
-// PROFILE UPDATE VALIDATION
-// -------------------------------------------------------------
 // Every field is optional; an empty lastName means "remove it".
 // The avatar is not here: it changes only through the /api/user/avatar routes (Cloudinary).
 const updateProfileValidation = z.object({
@@ -124,10 +112,27 @@ const updateProfileValidation = z.object({
     languagePreferences: z.array(z.enum(LANGUAGE_ENUM)).max(LANGUAGE_ENUM.length).optional(),
 });
 
-// change Password req body validation.
-
 const changePasswordValidation = z.object({
     oldPassword: z.string().min(8, "Password must be at least 8 characters long").max(32, "Password cannot exceed 32 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[a-z]/, "Password must contain at least one lowercase letter").regex(/[0-9]/, "Password must contain at least one number").regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
+    newPassword: z.string()
+        .min(8, { message: 'Password must be at least 8 characters long' })
+        .max(32, { message: 'Password cannot exceed 32 characters' })
+        .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+        .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+        .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+        .regex(/[^a-zA-Z0-9]/, { message: 'Password must contain at least one special character' }),
+    confirmPassword: z.string(),
+}).refine(
+    (data) => data.newPassword === data.confirmPassword,
+    {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    }
+);
+
+const resetPasswordValidation = z.object({
+    email: z.string().trim().toLowerCase().email("Invalid email format"),
+    otp: z.string().trim().regex(/^\d{6}$/, "Code must be 6 digits"),
     newPassword: z.string()
         .min(8, { message: 'Password must be at least 8 characters long' })
         .max(32, { message: 'Password cannot exceed 32 characters' })
@@ -152,4 +157,5 @@ module.exports = {
     executionValidation,
     changePasswordValidation,
     updateProfileValidation,
+    resetPasswordValidation,
 };
