@@ -1,22 +1,6 @@
 import { Link } from "react-router";
 import { getLanguageLabel } from "../../constants/languages";
-
-const relativeTime = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
-
-function timeAgo(dateString) {
-  const seconds = Math.round((new Date(dateString).getTime() - Date.now()) / 1000);
-  const units = [
-    ["year", 365 * 24 * 3600],
-    ["month", 30 * 24 * 3600],
-    ["day", 24 * 3600],
-    ["hour", 3600],
-    ["minute", 60],
-  ];
-  for (const [unit, size] of units) {
-    if (Math.abs(seconds) >= size) return relativeTime.format(Math.round(seconds / size), unit);
-  }
-  return "just now";
-}
+import { timeAgo } from "../../utils/timeAgo";
 
 export default function RecentAcList({ items = [] }) {
   return (

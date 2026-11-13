@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { LANGUAGES } from "../../constants/languages";
 import { useTheme } from "../../theme/theme";
+import { defineEditorThemes, editorThemeName, EDITOR_OPTIONS } from "./editorTheme";
 
 export default function CodeEditorPanel({ language, code, onLanguageChange, onCodeChange, onReset, onRun, onSubmit }) {
   // Monaco commands are registered once on mount; refs keep them calling the latest handlers
@@ -13,34 +14,6 @@ export default function CodeEditorPanel({ language, code, onLanguageChange, onCo
   }, [onRun, onSubmit]);
 
   const { theme } = useTheme();
-
-  // Monaco needs literal colors; these mirror the --surface / --surface-hover / --fg-* tokens in index.css
-  const handleBeforeMount = (monaco) => {
-    monaco.editor.defineTheme("codehub-light", {
-      base: "vs",
-      inherit: true,
-      rules: [],
-      colors: {
-        "editor.background": "#f5f5f5",
-        "editor.lineHighlightBackground": "#ececec",
-        "editor.lineHighlightBorder": "#ececec",
-        "editorLineNumber.foreground": "#94a3b8",
-        "editorLineNumber.activeForeground": "#475569",
-      },
-    });
-    monaco.editor.defineTheme("codehub-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [],
-      colors: {
-        "editor.background": "#232428",
-        "editor.lineHighlightBackground": "#2b2d31",
-        "editor.lineHighlightBorder": "#2b2d31",
-        "editorLineNumber.foreground": "#52525b",
-        "editorLineNumber.activeForeground": "#a1a1aa",
-      },
-    });
-  };
 
   const handleMount = (editor, monaco) => {
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Quote, () => runRef.current());
@@ -84,19 +57,11 @@ export default function CodeEditorPanel({ language, code, onLanguageChange, onCo
           language={monacoLanguage}
           value={code}
           onChange={(value) => onCodeChange(value ?? "")}
-          beforeMount={handleBeforeMount}
+          beforeMount={defineEditorThemes}
           onMount={handleMount}
-          theme={theme === "dark" ? "codehub-dark" : "codehub-light"}
+          theme={editorThemeName(theme)}
           loading={<div className="text-body-sm text-fg-muted">Loading editor…</div>}
-          options={{
-            fontSize: 14,
-            fontFamily: "'JetBrains Mono', monospace",
-            minimap: { enabled: false },
-            automaticLayout: true, // re-measure when panels are resized
-            scrollBeyondLastLine: false,
-            tabSize: 4,
-            padding: { top: 12 },
-          }}
+          options={EDITOR_OPTIONS}
         />
       </div>
     </div>

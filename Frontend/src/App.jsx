@@ -10,6 +10,8 @@ import ProfilePage from './pages/profile';
 
 // Lazy-loaded so the editor libraries are only downloaded when a problem is opened
 const ProblemPage = lazy(() => import('./pages/problem'));
+const AdminPage = lazy(() => import('./pages/admin'));
+const AdminProblemPage = lazy(() => import('./pages/adminProblem'));
 
 function PageLoader() {
   return (
@@ -21,7 +23,11 @@ function PageLoader() {
 
 function App () {
   const dispatch = useDispatch();
-  const { isAuthenticated, isLoading }= useSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, user }= useSelector((state) => state.auth);
+  // the UI gate only; the API checks the admin role on every admin request
+  const isAdmin = isAuthenticated && user?.role === 'admin';
+  const adminOnly = (page) =>
+    isAdmin ? <Suspense fallback={<PageLoader />}>{page}</Suspense> : <Navigate to={isAuthenticated ? "/" : "/login"} />;
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
@@ -46,6 +52,9 @@ function App () {
         }
       />
       <Route path="/u/:username" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} />
+      <Route path="/admin" element={adminOnly(<AdminPage />)} />
+      <Route path="/admin/problems/new" element={adminOnly(<AdminProblemPage />)} />
+      <Route path="/admin/problems/:problemId" element={adminOnly(<AdminProblemPage />)} />
       <Route path="/login" element={ isAuthenticated ? <Navigate to = "/" /> :<Login />} />
       <Route path="/signup" element={ isAuthenticated ? <Navigate to ="/"/> : <Signup />} />
       <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/" /> : <ForgotPassword />} />

@@ -22,7 +22,7 @@ function CaseTabs({ count, active, onSelect, statuses }) {
         <button
           key={i}
           onClick={() => onSelect(i)}
-          className={`flex items-center gap-1.5 h-6 px-2.5 rounded text-body-sm font-medium transition-colors cursor-pointer ${
+          className={`flex items-center gap-1.5 h-6 px-2.5 rounded-full text-body-sm font-medium transition-colors cursor-pointer ${
             active === i ? "bg-surface text-fg shadow-card ring-1 ring-line" : "text-fg-muted hover:text-fg"
           }`}
         >

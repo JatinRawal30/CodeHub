@@ -103,11 +103,11 @@ Stores:
 ---
 
 ### 4. Problem & Solved Management — `src/controllers/problem.controller.js`
-- `POST /api/problems/create` (Admin Only)
-- `PATCH /api/problems/update/:id` (Admin Only)
-- `DELETE /api/problems/delete/:id` (Admin Only)
-- `GET /api/problems/get/:id` (Public - Strips hidden test cases & reference solution)
-- `GET /api/problems/list` (Public - Paginated with difficulty/tag/search filters)
+- `POST /api/problems` (Admin Only)
+- `PATCH /api/problems/:id` (Admin Only)
+- `DELETE /api/problems/:id` (Admin Only)
+- `GET /api/problems/:id` (Public - Strips hidden test cases & reference solution)
+- `GET /api/problems` (Public - Paginated with difficulty/tag/search filters)
 - `GET /api/problems/solved` (Auth Required - Returns user's solved problems with difficulty breakdown)
 
 ---
@@ -132,7 +132,7 @@ Stores:
 ### Q3: How do you prevent users from cheating and inspecting hidden test cases?
 > **Answer:**
 > We implement **Field Projection Filtering** at the MongoDB query level:
-> - When a user fetches problem details (`GET /api/problems/get/:id`), our query explicitly excludes sensitive fields: `.select("-hiddenTestCases -referenceSolution")`.
+> - When a user fetches problem details (`GET /api/problems/:id`), our query explicitly excludes sensitive fields: `.select("-hiddenTestCases -referenceSolution")`.
 > - Hidden test cases are only loaded internally in memory during `submitCode` on the backend, and are never returned in client HTTP responses.
 
 ---

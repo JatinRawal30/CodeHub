@@ -8,6 +8,7 @@ const {
     getMyProfile,
     getPublicProfile,
     searchUsers,
+    getLeaderboard,
     updateMyProfile,
     changePassword,
 } = require("../controllers/userProfile.controller");
@@ -21,6 +22,7 @@ const {
     verifyEmailLimiter,
     avatarUploadLimiter,
     userSearchLimiter,
+    leaderboardLimiter,
 } = require("../middleware/rateLimiter.middleware");
 
 const userRouter = express.Router();
@@ -35,6 +37,7 @@ userRouter.post('/avatar/signature', authMiddleware, avatarUploadLimiter, getAva
 userRouter.put('/avatar', authMiddleware, saveAvatar);
 userRouter.delete('/avatar', authMiddleware, removeAvatar);
 userRouter.get('/search', authMiddleware, userSearchLimiter, searchUsers);
+userRouter.get('/leaderboard', authMiddleware, leaderboardLimiter, getLeaderboard);
 
 // Public, no auth. Keep last so /profile, /avatar etc. aren't caught as :username
 userRouter.get('/:username', getPublicProfile);

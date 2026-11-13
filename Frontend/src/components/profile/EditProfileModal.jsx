@@ -144,7 +144,7 @@ function ProfileForm({ profile, onSaved }) {
                 type="button"
                 onClick={() => toggleLanguage(l.id)}
                 aria-pressed={isOn}
-                className={`h-7 px-2.5 rounded text-body-sm border transition-colors cursor-pointer ${
+                className={`h-7 px-3 rounded-full text-body-sm border transition-colors cursor-pointer ${
                   isOn
                     ? "bg-primary-soft border-primary-soft-line text-primary-soft-fg"
                     : "bg-surface border-line-strong text-fg-body hover:bg-surface-hover hover:border-fg-subtle"

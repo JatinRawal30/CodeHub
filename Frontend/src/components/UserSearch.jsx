@@ -38,7 +38,7 @@ function Match({ text, query, className }) {
   );
 }
 
-// Navbar search for other users. ⌘K / Ctrl K focuses it; below md it collapses to an icon
+// Navbar search for other users. ⌘K / Ctrl K focuses it; below lg it collapses to an icon
 // that opens the field across the whole navbar.
 export default function UserSearch() {
   const navigate = useNavigate();
@@ -161,22 +161,20 @@ export default function UserSearch() {
         type="button"
         onClick={expandAndFocus}
         aria-label="Search users"
-        className="md:hidden btn btn-ghost btn-icon"
+        className="lg:hidden btn btn-ghost btn-icon"
       >
         <SearchIcon className="w-[18px] h-[18px]" />
       </button>
 
       <div
         ref={boxRef}
-        className={`${isExpanded ? "flex" : "hidden"} md:flex items-center gap-2
-          absolute inset-0 z-50 px-4 bg-surface border-b border-line
-          md:static md:z-auto md:px-0 md:bg-transparent md:border-0`}
+        className={`${isExpanded ? "flex" : "hidden"} lg:flex items-center gap-2
+          absolute inset-0 z-50 px-4 bg-canvas
+          lg:static lg:z-auto lg:px-0 lg:bg-transparent lg:border-0`}
       >
         <div
-          className="group relative flex-1 md:flex-none md:w-64 md:focus-within:w-80
-            transition-[width] duration-200 ease-out motion-reduce:transition-none"
-        >
-          <SearchIcon className="w-[18px] h-[18px] text-fg-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          className="group relative flex-1 lg:flex-none lg:w-56 xl:w-72">
+          <SearchIcon className="w-4 h-4 text-fg-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             ref={inputRef}
             type="text"
@@ -191,7 +189,7 @@ export default function UserSearch() {
             autoComplete="off"
             spellCheck={false}
             enterKeyHint="search"
-            placeholder="Search users..."
+            placeholder="Search users…"
             value={query}
             maxLength={20}
             onChange={(e) => {
@@ -200,12 +198,11 @@ export default function UserSearch() {
             }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
-            className="input h-9 pl-10 pr-16 rounded-xl text-body-md bg-surface-hover border-line-strong
-              placeholder:text-fg-muted hover:border-fg-subtle/60"
+            className="input h-10 pl-10.5 pr-14 border-transparent focus:border-transparent focus:shadow-none"
           />
 
           {/* right slot: spinner while searching, clear once there's text, otherwise the shortcut */}
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center">
             {status === "loading" ? (
               <span
                 className="spinner w-3.5 h-3.5 mr-1 text-fg-subtle"
@@ -221,7 +218,7 @@ export default function UserSearch() {
                   inputRef.current?.focus();
                 }}
                 aria-label="Clear search"
-                className="w-6 h-6 inline-flex items-center justify-center rounded text-fg-subtle hover:text-fg hover:bg-surface-hover cursor-pointer"
+                className="w-6 h-6 inline-flex items-center justify-center rounded-full text-fg-subtle hover:text-fg hover:bg-surface-hover cursor-pointer"
               >
                 <svg
                   className="w-3.5 h-3.5"
@@ -237,18 +234,16 @@ export default function UserSearch() {
               </button>
             ) : (
               <kbd
-                className="hidden md:inline-flex items-center gap-1 h-6 px-1.5 rounded-md border border-line-strong
-                  font-sans text-xs text-fg-muted group-focus-within:opacity-0 transition-opacity"
+                className="hidden lg:inline font-mono text-[0.7rem] text-fg-subtle group-focus-within:opacity-0 transition-opacity"
                 aria-hidden="true"
               >
-                {isMac ? <span className="text-sm leading-none">⌘</span> : "Ctrl"}
-                <span>K</span>
+                {isMac ? "⌘K" : "Ctrl K"}
               </kbd>
             )}
           </div>
 
           {showPanel && (
-            <div className="popover bg-surface absolute top-full mt-2 left-0 right-0 md:left-auto md:w-80 overflow-hidden">
+            <div className="popover bg-surface absolute top-full mt-2 left-0 right-0 lg:left-auto lg:w-80 overflow-hidden">
               {status === "error" ? (
                 <p
                   className="px-3 py-3 text-body-sm text-danger-fg"
@@ -288,7 +283,7 @@ export default function UserSearch() {
                         onMouseDown={(e) => e.preventDefault()} // keep focus in the input so the click lands
                         onClick={() => openProfile(u.username)}
                         onMouseMove={() => setActiveIndex(i)}
-                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded cursor-pointer ${
+                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer ${
                           isActive ? "bg-surface-hover" : ""
                         }`}
                       >
@@ -328,7 +323,7 @@ export default function UserSearch() {
               )}
 
               {results.length > 0 && status !== "error" && (
-                <div className="hidden md:flex items-center gap-3 px-3 py-2 border-t border-line bg-surface-alt text-xs text-fg-muted">
+                <div className="hidden lg:flex items-center gap-3 px-3 py-2 border-t border-line bg-surface-alt text-xs text-fg-muted">
                   <span className="flex items-center gap-1">
                     <kbd className="kbd">↑</kbd>
                     <kbd className="kbd">↓</kbd> to move
@@ -348,7 +343,7 @@ export default function UserSearch() {
         <button
           type="button"
           onClick={close}
-          className="md:hidden btn btn-ghost btn-sm"
+          className="lg:hidden btn btn-ghost btn-sm"
         >
           Cancel
         </button>

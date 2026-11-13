@@ -77,6 +77,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-canvas text-fg-body flex flex-col font-sans antialiased">
       <Navbar
+        wide
         activeSection={null}
         onSectionChange={(section) => navigate("/", { state: { section } })}
         onOpenSettings={() => setIsEditOpen(true)}

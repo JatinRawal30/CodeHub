@@ -7,7 +7,8 @@ import ThemeToggle from "./ThemeToggle";
 import UserSearch from "./UserSearch";
 import { logoutUser, fetchUserProfile } from "../store/slices/authSlice";
 
-export default function Navbar({ activeSection = "problems", onSectionChange, onOpenSettings }) {
+// `wide` lines the bar up with pages that use the wider 7xl column (profile)
+export default function Navbar({ activeSection = "problems", onSectionChange, onOpenSettings, wide = false }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, profile } = useSelector((state) => state.auth);
@@ -67,6 +68,7 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
   const navItems = [
     { id: "problems", label: "Problems" },
     { id: "contest", label: "Contest" },
+    { id: "leaderboard", label: "Leaderboard" },
     { id: "chat", label: "Chat Room" },
   ];
 
@@ -75,26 +77,27 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
   const menuIconClass = "w-4 h-4 text-fg-muted group-hover:text-fg transition-colors";
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-overlay backdrop-blur-md border-b border-line px-4 sm:px-6">
-      <div className="max-w-7xl mx-auto h-13 flex items-center justify-between">
-        <div className="flex items-center gap-3 sm:gap-8 min-w-0">
+    <nav className="sticky top-0 z-50 w-full bg-canvas/70 backdrop-blur-xl">
+      <div className={`mx-auto flex h-16 items-center justify-between px-4 sm:px-6 ${wide ? "max-w-7xl" : "max-w-6xl"}`}>
+        <div className="flex items-center gap-3 sm:gap-6 lg:gap-10 min-w-0">
           <CodeHubLogo size="sm" />
 
           {/* scrolls sideways on phones so the controls on the right stay on screen */}
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0 overflow-x-auto [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:[mask-image:none]">
+          <div className="flex items-center gap-1 min-w-0 py-1 overflow-x-auto [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] md:[mask-image:none]">
             {navItems.map((item) => {
               const isActive = activeSection === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => onSectionChange && onSectionChange(item.id)}
-                  className={`relative shrink-0 whitespace-nowrap px-2 sm:px-3 py-4 text-body-md font-medium transition-colors cursor-pointer select-none ${
+                  aria-current={isActive ? "page" : undefined}
+                  className={`relative shrink-0 whitespace-nowrap rounded-full px-3 lg:px-4 py-2 text-[0.95rem] transition-colors cursor-pointer select-none ${
                     isActive ? "text-fg" : "text-fg-muted hover:text-fg"
                   }`}
                 >
                   {item.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-2 right-2 sm:left-3 sm:right-3 h-0.5 bg-primary rounded-full" />
+                    <span className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
                   )}
                 </button>
               );
@@ -102,7 +105,7 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
           </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           <UserSearch />
           <ThemeToggle />
 
@@ -111,19 +114,12 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
               onClick={() => setIsDropdownOpen((prev) => !prev)}
               aria-label="User menu"
               aria-expanded={isDropdownOpen}
-              className="flex items-center gap-1.5 p-1 rounded-md hover:bg-surface-hover transition-colors cursor-pointer group"
+              className="flex items-center gap-1.5 rounded-full p-0.5 text-fg-muted transition-colors hover:text-fg cursor-pointer"
             >
-              <UserAvatar
-                src={avatar}
-                name={username}
-                size={30}
-                className="rounded-full border border-line-strong group-hover:border-primary transition-colors"
-              />
+              <UserAvatar src={avatar} name={username} size={36} className="rounded-full" />
 
               <svg
-                className={`w-3.5 h-3.5 transition-transform duration-200 group-hover:text-fg ${
-                  isDropdownOpen ? "rotate-180 text-fg" : "text-fg-muted"
-                }`}
+                className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180 text-fg" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -174,15 +170,15 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
                   </div>
 
                   <div className="grid grid-cols-3 gap-1.5 pt-1 text-center">
-                    <div className="px-1.5 py-1 rounded bg-success-soft border border-success-line">
+                    <div className="px-1.5 py-1 rounded-lg bg-success-soft border border-success-line">
                       <div className="text-[10px] text-success-fg font-medium">Easy</div>
                       <div className="text-code-sm text-fg">{breakdown.easy ?? 0}</div>
                     </div>
-                    <div className="px-1.5 py-1 rounded bg-warning-soft border border-warning-line">
+                    <div className="px-1.5 py-1 rounded-lg bg-warning-soft border border-warning-line">
                       <div className="text-[10px] text-warning-fg font-medium">Med</div>
                       <div className="text-code-sm text-fg">{breakdown.medium ?? 0}</div>
                     </div>
-                    <div className="px-1.5 py-1 rounded bg-danger-soft border border-danger-line">
+                    <div className="px-1.5 py-1 rounded-lg bg-danger-soft border border-danger-line">
                       <div className="text-[10px] text-danger-fg font-medium">Hard</div>
                       <div className="text-code-sm text-fg">{breakdown.hard ?? 0}</div>
                     </div>
@@ -209,6 +205,22 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
                     </svg>
                     <span>My Profile</span>
                   </button>
+
+                  {user?.role === "admin" && (
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        navigate("/admin");
+                      }}
+                      className={menuItemClass}
+                    >
+                      <svg className={menuIconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.5 12l2 2 3.5-4" />
+                      </svg>
+                      <span>Admin</span>
+                    </button>
+                  )}
 
                   <button
                     onClick={() => {
@@ -259,6 +271,7 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
           </div>
         </div>
       </div>
+      <div className="h-px bg-gradient-to-r from-transparent via-line to-transparent" />
     </nav>
   );
 }

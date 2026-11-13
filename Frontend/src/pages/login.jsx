@@ -147,7 +147,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2 rounded text-body-sm font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2.5 rounded-full text-body-sm font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>

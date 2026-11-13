@@ -14,21 +14,21 @@ export default function CodeHubLogo({ showText = true, className = "", size = "m
   };
 
   const textSizes = {
-    sm: "text-[22px] leading-[30px]",
-    md: "text-headline-lg",
-    lg: "text-[40px] leading-[48px]",
+    sm: "text-[1.35rem] sm:text-[1.6rem]",
+    md: "text-[2rem]",
+    lg: "text-[2.5rem]",
   };
 
   // with text, the "Hub" block is the mark, so the icon tile is only used on its own
   if (showText) {
     return (
-      <Link to="/" className={`inline-flex items-center gap-1 group ${className}`}>
-        <span className={`${textSizes[size] || textSizes.md} font-bold tracking-tight text-fg`}>Code</span>
-        <span
-          className={`${textSizes[size] || textSizes.md} font-bold tracking-tight px-1.5 rounded-md bg-warning text-slate-950 transition-[filter] group-hover:brightness-95`}
-        >
-          Hub
-        </span>
+      <Link
+        to="/"
+        aria-label="CodeHub home"
+        className={`inline-flex items-center gap-1 font-logo font-bold leading-none tracking-tight group ${textSizes[size] || textSizes.md} ${className}`}
+      >
+        <span className="text-fg">Code</span>
+        <span className="rounded-md bg-brand px-1.5 py-1 text-brand-fg transition-[filter] group-hover:brightness-95">Hub</span>
       </Link>
     );
   }
