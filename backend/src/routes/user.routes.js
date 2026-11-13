@@ -1,5 +1,5 @@
 const express = require("express");
-const { authMiddleware } = require("../middleware/auth.middleware");
+const { authMiddleware, blockDemoAccount } = require("../middleware/auth.middleware");
 const {
     sendVerificationOtpHandler,
     verifyEmailHandler,
@@ -27,15 +27,15 @@ const {
 
 const userRouter = express.Router();
 
-userRouter.post('/send-verify-email', authMiddleware, sendVerifyEmailLimiter, sendVerificationOtpHandler);
-userRouter.post('/verify-email',      authMiddleware, verifyEmailLimiter, verifyEmailHandler);
+userRouter.post('/send-verify-email', authMiddleware, blockDemoAccount, sendVerifyEmailLimiter, sendVerificationOtpHandler);
+userRouter.post('/verify-email',      authMiddleware, blockDemoAccount, verifyEmailLimiter, verifyEmailHandler);
 
 userRouter.get('/profile', authMiddleware, getMyProfile);
-userRouter.put('/profile', authMiddleware, updateMyProfile);
-userRouter.patch('/profile/change-password',authMiddleware,changePassword);
-userRouter.post('/avatar/signature', authMiddleware, avatarUploadLimiter, getAvatarSignature);
-userRouter.put('/avatar', authMiddleware, saveAvatar);
-userRouter.delete('/avatar', authMiddleware, removeAvatar);
+userRouter.put('/profile', authMiddleware, blockDemoAccount, updateMyProfile);
+userRouter.patch('/profile/change-password',authMiddleware, blockDemoAccount,changePassword);
+userRouter.post('/avatar/signature', authMiddleware, blockDemoAccount, avatarUploadLimiter, getAvatarSignature);
+userRouter.put('/avatar', authMiddleware, blockDemoAccount, saveAvatar);
+userRouter.delete('/avatar', authMiddleware, blockDemoAccount, removeAvatar);
 userRouter.get('/search', authMiddleware, userSearchLimiter, searchUsers);
 userRouter.get('/leaderboard', authMiddleware, leaderboardLimiter, getLeaderboard);
 

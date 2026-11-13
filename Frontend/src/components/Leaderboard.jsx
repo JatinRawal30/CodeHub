@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router";
 import UserAvatar from "./UserAvatar";
+import VerifiedBadge from "./VerifiedBadge";
 import Pagination from "./Pagination";
 import { Segmented } from "./ProblemFilters";
 import { fetchLeaderboard } from "../api/profile";
@@ -15,6 +16,9 @@ const PERIODS = [
   ["week", "7 days"],
 ];
 
+// gold, silver, bronze by rank, so tied users share a medal
+const MEDAL = { 1: "var(--medal-gold)", 2: "var(--medal-silver)", 3: "var(--medal-bronze)" };
+
 const RANKED_BY = {
   all: "Ranked by problems solved.",
   month: "Ranked by problems first solved in the last 30 days.",
@@ -26,14 +30,6 @@ const RANKED_BY = {
 const COLUMNS =
   "grid grid-cols-[2.5rem_1fr_3.5rem] items-center gap-x-4 px-4 md:grid-cols-[2.5rem_1fr_4.5rem_10rem] lg:grid-cols-[2.5rem_1fr_4.5rem_10rem_6rem_7rem_7rem]";
 
-function VerifiedTick() {
-  return (
-    <svg className="size-3.5 shrink-0 text-success-fg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" role="img" aria-label="Verified">
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  );
-}
-
 function Row({ row, isMe = false }) {
   const dot = <span className="text-fg-subtle"> · </span>;
   return (
@@ -41,7 +37,10 @@ function Row({ row, isMe = false }) {
       to={`/u/${row.username}`}
       className={`group ${COLUMNS} rounded-2xl py-3 transition-colors ${isMe ? "bg-primary-soft" : "hover:bg-surface"}`}
     >
-      <span className={`text-right font-mono text-sm ${row.rank <= 3 ? "font-medium text-brand-ink" : "text-fg-subtle"}`}>
+      <span
+        className={`text-right font-mono text-sm ${MEDAL[row.rank] ? "font-medium" : "text-fg-subtle"}`}
+        style={MEDAL[row.rank] ? { color: MEDAL[row.rank] } : undefined}
+      >
         {row.rank}
       </span>
       <span className="flex min-w-0 items-center gap-3">
@@ -51,7 +50,7 @@ function Row({ row, isMe = false }) {
             <span className="truncate font-display text-base font-medium text-fg transition-colors group-hover:text-primary">
               {row.name || row.username}
             </span>
-            {row.isVerified && <VerifiedTick />}
+            {row.isVerified && <VerifiedBadge />}
             {isMe && <span className="badge badge-info shrink-0">You</span>}
           </span>
           <span className="block truncate font-mono text-xs text-fg-subtle">@{row.username}</span>
@@ -191,30 +190,40 @@ export default function Leaderboard() {
 
           {podium.length > 0 && (
             <ol aria-label="Top three" className="mt-10 grid gap-3 sm:grid-cols-3">
-              {podium.map((row) => (
-                <li key={row.username}>
-                  <Link
-                    to={`/u/${row.username}`}
-                    className="group flex items-center gap-4 rounded-2xl bg-surface px-5 py-4 transition-colors hover:bg-surface-hover"
-                  >
-                    <span className={`w-7 shrink-0 font-display text-3xl font-semibold ${row.rank === 1 ? "text-brand-ink" : "text-fg-muted"}`}>
-                      {row.rank}
-                    </span>
-                    <UserAvatar src={row.avatar} name={row.username} size={48} className="rounded-full" />
-                    <span className="min-w-0">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate font-display text-lg font-medium text-fg transition-colors group-hover:text-primary">
-                          {row.name || row.username}
+              {podium.map((row) => {
+                const medal = MEDAL[row.rank];
+                return (
+                  <li key={row.username}>
+                    <Link
+                      to={`/u/${row.username}`}
+                      style={{
+                        backgroundImage: `linear-gradient(135deg, color-mix(in oklch, ${medal} 16%, transparent), transparent 70%)`,
+                        borderColor: `color-mix(in oklch, ${medal} 30%, transparent)`,
+                      }}
+                      className="group flex items-center gap-4 rounded-2xl border bg-surface px-5 py-4 transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-surface-hover motion-reduce:transition-none"
+                    >
+                      <span className="w-7 shrink-0 font-display text-3xl font-semibold" style={{ color: medal }}>
+                        {row.rank}
+                      </span>
+                      {/* a medal-colored ring with a gap, around the photo or initial */}
+                      <span className="shrink-0 rounded-full p-[3px]" style={{ background: medal }}>
+                        <UserAvatar src={row.avatar} name={row.username} size={48} className="rounded-full ring-2 ring-canvas" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-1.5">
+                          <span className="truncate font-display text-lg font-medium text-fg transition-colors group-hover:text-primary">
+                            {row.name || row.username}
+                          </span>
+                          {row.isVerified && <VerifiedBadge />}
                         </span>
-                        {row.isVerified && <VerifiedTick />}
+                        <span className="block text-sm text-fg-muted">
+                          <span className="font-mono text-fg">{row.solved}</span> solved
+                        </span>
                       </span>
-                      <span className="block text-sm text-fg-muted">
-                        <span className="font-mono text-fg">{row.solved}</span> solved
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                    </Link>
+                  </li>
+                );
+              })}
             </ol>
           )}
 

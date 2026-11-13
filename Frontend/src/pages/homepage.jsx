@@ -38,7 +38,7 @@ export default function Homepage() {
   const [searchParams] = useSearchParams();
   const { user, profile } = useSelector((state) => state.auth);
 
-  // 'problems' | 'contest' | 'leaderboard' | 'chat'.
+  // 'problems' | 'contest' | 'leaderboard'.
   // Other pages can open a tab via navigate("/", { state: { section } })
   const [activeSection, setActiveSection] = useState(location.state?.section || "problems");
 
@@ -275,15 +275,6 @@ export default function Homepage() {
         )}
 
         {activeSection === "leaderboard" && <Leaderboard />}
-
-        {activeSection === "chat" && (
-          <QuietSection
-            label="Chat Room"
-            title="A quiet place to think out loud"
-            body="Conversations with fellow coders will live here."
-            onBack={() => setActiveSection("problems")}
-          />
-        )}
       </main>
 
       <SettingsModal

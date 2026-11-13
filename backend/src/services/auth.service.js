@@ -6,6 +6,7 @@ const { generateToken, verifyRefreshToken } = require("../utils/generateToken");
 const redisClient = require("../config/redis.config");
 const cloudinary = require("../config/cloudinary.config");
 const { z } = require("zod");
+const { isDemoUser } = require("../utils/demoAccount");
 const {
     BadRequestError,
     UnauthorizedError,
@@ -101,9 +102,14 @@ class AuthService {
             role: existingUser.role,
         });
 
-        await redisClient.set(`refreshToken:${existingUser._id}`, refreshToken, {
-            EX: REFRESH_TOKEN_EXPIRY,
-        });
+        // One stored refresh token per user means a new login signs out the previous one. The demo
+        // account is shared by many visitors at once, so its refresh tokens aren't stored or compared.
+        // shortcut: demo refresh tokens can't be revoked early; they expire after 7 days
+        if (!isDemoUser(existingUser)) {
+            await redisClient.set(`refreshToken:${existingUser._id}`, refreshToken, {
+                EX: REFRESH_TOKEN_EXPIRY,
+            });
+        }
 
         return {
             user: toUserResponse(existingUser),
@@ -123,7 +129,7 @@ class AuthService {
             }
         }
 
-        if (userPayload && userPayload.id) {
+        if (userPayload && userPayload.id && !isDemoUser(userPayload)) {
             await redisClient.del(`refreshToken:${userPayload.id}`);
         }
     }
@@ -141,9 +147,11 @@ class AuthService {
             throw new UnauthorizedError("Invalid or expired refresh token");
         }
 
-        const storedRefreshToken = await redisClient.get(`refreshToken:${decoded.id}`);
-        if (!storedRefreshToken || storedRefreshToken !== incomingRefreshToken) {
-            throw new UnauthorizedError("Refresh token revoked or invalid");
+        if (!isDemoUser(decoded)) {
+            const storedRefreshToken = await redisClient.get(`refreshToken:${decoded.id}`);
+            if (!storedRefreshToken || storedRefreshToken !== incomingRefreshToken) {
+                throw new UnauthorizedError("Refresh token revoked or invalid");
+            }
         }
 
         const existingUser = await user.findById(decoded.id);
@@ -158,9 +166,11 @@ class AuthService {
             role: existingUser.role,
         });
 
-        await redisClient.set(`refreshToken:${existingUser._id}`, newRefreshToken, {
-            EX: REFRESH_TOKEN_EXPIRY,
-        });
+        if (!isDemoUser(existingUser)) {
+            await redisClient.set(`refreshToken:${existingUser._id}`, newRefreshToken, {
+                EX: REFRESH_TOKEN_EXPIRY,
+            });
+        }
 
         return {
             accessToken: newAccessToken,

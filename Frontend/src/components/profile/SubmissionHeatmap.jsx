@@ -10,7 +10,8 @@ const toKey = (date) => date.toISOString().slice(0, 10);
 function cellColor(count) {
   if (!count) return "var(--surface-hover)";
   const percent = count === 1 ? 30 : count <= 3 ? 55 : count <= 6 ? 78 : 100;
-  return `color-mix(in srgb, var(--success) ${percent}%, var(--surface-hover))`;
+  // Tailwind's green-500, the same green as the solved ticks, rather than the mint theme color
+  return `color-mix(in srgb, oklch(72.3% 0.219 149.579) ${percent}%, var(--surface-hover))`;
 }
 
 function buildGrid(calendar) {

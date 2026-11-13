@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import CodeHubLogo from "./CodeHubLogo";
 import UserAvatar from "./UserAvatar";
+import VerifiedBadge from "./VerifiedBadge";
 import ThemeToggle from "./ThemeToggle";
 import UserSearch from "./UserSearch";
 import { logoutUser, fetchUserProfile } from "../store/slices/authSlice";
@@ -67,9 +68,8 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
 
   const navItems = [
     { id: "problems", label: "Problems" },
-    { id: "contest", label: "Contest" },
     { id: "leaderboard", label: "Leaderboard" },
-    { id: "chat", label: "Chat Room" },
+    { id: "contest", label: "Contest" },
   ];
 
   const menuItemClass =
@@ -137,9 +137,7 @@ export default function Navbar({ activeSection = "problems", onSectionChange, on
                     <div className="text-body-md font-semibold text-fg truncate flex items-center gap-1.5">
                       <span className="truncate">{displayName}</span>
                       {profile?.isVerified && (
-                        <span className="text-success text-xs" title="Verified Account">
-                          ✓
-                        </span>
+                        <VerifiedBadge size={14} title="Verified account" />
                       )}
                     </div>
                     <div className="text-body-sm text-fg-muted truncate">@{username}</div>

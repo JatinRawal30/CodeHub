@@ -1,5 +1,6 @@
 const { verifyToken } = require("../utils/generateToken");
 const redisClient = require("../config/redis.config");
+const { isDemoUser } = require("../utils/demoAccount");
 
 const authMiddleware = async (req, res, next) => {
     try {
@@ -63,7 +64,18 @@ const adminAuthMiddleware = async (req, res, next) => {
     }
 };
 
+// after authMiddleware: the shared demo account can't change its profile, password, photo or email, or delete itself
+const blockDemoAccount = (req, res, next) => {
+    if (isDemoUser(req.user)) {
+        return res.status(403).json({
+            error: "The demo account is shared, so it can't be changed. Sign up to get your own account.",
+        });
+    }
+    next();
+};
+
 module.exports = {
     authMiddleware,
-    adminAuthMiddleware
+    adminAuthMiddleware,
+    blockDemoAccount,
 };

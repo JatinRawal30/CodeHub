@@ -1,11 +1,13 @@
 const redisClient = require('../config/redis.config');
+const { isDemoUser } = require('../utils/demoAccount');
 
 // Fixed-window limiter backed by Redis INCR + EXPIRE. windowSeconds is in seconds.
 function createRateLimiter({ prefix, limit = 3, windowSeconds = 60, actionName = "requests" }) {
     return async function rateLimiterMiddleware(req, res, next) {
         try {
-            // per user when authenticated, otherwise per IP
-            const identifier = req.user?.id || req.ip;
+            // per user when authenticated, otherwise per IP. Everyone on the shared demo account
+            // would otherwise share one user's limits, so demo visitors are counted per IP.
+            const identifier = isDemoUser(req.user) ? `demo:${req.ip}` : req.user?.id || req.ip;
             const key = `ratelimit:${prefix}:${identifier}`;
 
             const currentCount = await redisClient.incr(key);

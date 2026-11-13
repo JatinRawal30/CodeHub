@@ -1,5 +1,6 @@
 import { getLanguageLabel } from "../../constants/languages";
 import UserAvatar from "../UserAvatar";
+import VerifiedBadge from "../VerifiedBadge";
 
 function SectionTitle({ children }) {
   return <h3 className="label-caps text-fg-muted mb-3">{children}</h3>;
@@ -12,12 +13,12 @@ export default function ProfileSidebar({ profile, isOwner, ownerEmail, onEdit })
   return (
     <aside className="card p-5 space-y-5">
       <div className="flex gap-4">
-        <UserAvatar src={profile.avatar} name={profile.name || profile.username} size={80} className="rounded-full border border-line" />
+        <UserAvatar src={profile.avatar} name={profile.username} size={80} className="rounded-full border border-line" />
         <div className="min-w-0 flex flex-col justify-center">
           <div className="flex items-center gap-1.5">
             <h1 className="text-headline-sm text-fg truncate">{profile.name}</h1>
             {profile.isVerified && (
-              <span className="text-success-fg text-body-sm" title="Verified email">✓</span>
+              <VerifiedBadge size={18} title="Verified email" />
             )}
           </div>
           <div className="text-code-md text-fg-muted truncate">@{profile.username}</div>
