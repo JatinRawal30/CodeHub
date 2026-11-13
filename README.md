@@ -1,8 +1,8 @@
 # CodeHub
 
-A online judge. Users browse coding problems, write solutions in an in-browser VS Code editor, run them against sample tests, and submit them to be judged against hidden test cases. Each submission gets a verdict, runtime and memory usage.
+An online judge. Users browse coding problems, write solutions in an in-browser VS Code editor, run them against sample tests, and submit them to be judged against hidden test cases. Each submission gets a verdict, runtime and memory usage.
 
-**Status:** v2. It adds profile photo uploads with Cloudinary; see [VERSION_2.md](VERSION_2.md) for what changed since v1. Built as a full-stack learning and portfolio project, designed to run entirely on free tiers.
+**Status:** v2. Since v1 it has gained a full redesign, 100 more problems, an admin panel, a leaderboard, user search, password reset and profile photos. Built as a full-stack learning and portfolio project, designed to run entirely on free tiers.
 
 ---
 
@@ -16,23 +16,39 @@ A online judge. Users browse coding problems, write solutions in an in-browser V
 - Resizable split panes (description | editor / console), plus submission history for each problem
 
 **Problems**
-- Catalog of 20 seeded classic problems (Two Sum, Valid Parentheses, 3Sum, Trapping Rain Water, ...)
-- Search by title, filter by difficulty and tags, pagination, solved/unsolved markers
-- Admin-only create, update and delete
+- Catalog of 120 problems: 20 classics (Two Sum, Valid Parentheses, 3Sum, Trapping Rain Water, ...) plus 100 more across arrays, strings, dynamic programming, graphs, trees and data structures
+- Every seeded problem has generated hidden tests, including large ones, with expected outputs computed by a reference solution
+- Browse by topic with a picture slider, search by title, filter by difficulty and solved status, pagination
+
+**Leaderboard**
+- Users ranked by problems solved, with the easy / medium / hard split, acceptance rate, most used language and last solve
+- All time, last 30 days or last 7 days; search by username; your own row is always pinned at the top
+- Ties share a rank. Admin accounts are not ranked.
+
+**Admin panel** (`/admin`, admins only)
+- List, search and filter all problems; create, edit and delete them
+- One form for the statement, limits, topics, visible and hidden test cases, and reference solutions and starter code per language (Monaco editor)
+- Backend validation errors are shown next to the field they belong to
+- Create other admin accounts
 
 **Accounts and profiles**
 - Register and log in with a username or email
-- Email verification with a 6-digit OTP (printed to the server console when email isn't configured)
+- Forgot password: reset with a 6-digit code sent by email (printed to the server console when email isn't configured)
+- Search for other users from the header (`Ctrl/⌘ K`)
 - Public profile at `/u/:username`: solved count by difficulty, submission stats, activity heatmap, recent accepted problems
 - Profile photo upload: resized in the browser, uploaded straight to Cloudinary with a server-signed request, and shown at the right size everywhere. Users without a photo see their initial.
 - Edit profile (name, bio, preferred languages), change password, delete account
+
+**Design**
+- Dark charcoal and mint theme with a matching light theme and a toggle; dark is the default
+- Works from phone width up
 
 **Backend engineering**
 - **Asynchronous judging:** submissions go into a BullMQ queue and a background worker judges them, so the API responds right away
 - **Batch execution:** all test cases for a submission go to Judge0 in a single batch request
 - **Retries:** failed judge jobs retry 3 times with exponential backoff (2s, 4s, 8s). After the last retry the submission is marked `Internal Error` instead of being blamed on the user's code
 - **JWT auth with refresh-token rotation:** 15-minute access tokens, 7-day refresh tokens in an httpOnly cookie, and a Redis blacklist so logout takes effect immediately
-- **Redis rate limiting** on login, register, token refresh, run, submit and OTP endpoints
+- **Redis rate limiting** on login, register, token refresh, run, submit, password reset, search and leaderboard endpoints
 - **Graceful shutdown:** on `SIGTERM`/`SIGINT` the server stops accepting requests, lets the worker finish its current job, then closes Redis and MongoDB
 
 ---
@@ -47,13 +63,14 @@ A online judge. Users browse coding problems, write solutions in an in-browser V
 | **Code execution** | [Judge0 CE](https://ce.judge0.com) (sandboxed, public API) |
 | **Auth** | JSON Web Tokens, bcrypt, httpOnly cookies |
 | **Validation** | Zod (server and client) |
-| **Email** | Nodemailer |
+| **Email** | Brevo or Resend (HTTP APIs) |
 | **Image storage** | Cloudinary (signed direct uploads, on-the-fly resizing) |
 | **Frontend** | React 19, Vite 8, React Router 7 |
 | **State** | Redux Toolkit |
 | **Editor** | Monaco (`@monaco-editor/react`), `react-resizable-panels` |
 | **Forms** | react-hook-form + Zod |
-| **Styling** | Tailwind CSS 4, daisyUI 5 |
+| **Styling** | Tailwind CSS 4 with semantic design tokens; Figtree, Outfit and JetBrains Mono |
+| **Animation** | Motion (pagination) |
 | **HTTP** | Axios, with automatic token-refresh interceptor |
 
 ---
@@ -136,6 +153,7 @@ Every key except BullMQ's has an expiry, so Redis cleans up after itself.
 Codehub/
 ├── backend/
 │   ├── .env.example              # Environment variable template
+│   ├── scripts/                  # seedProblems.js and the 100 problem definitions in seed/problems/
 │   └── src/
 │       ├── index.js              # Entry point: Express app, DB + Redis connect, worker, shutdown
 │       ├── config/               # MongoDB, Redis and BullMQ connections
@@ -146,15 +164,17 @@ Codehub/
 │       ├── models/               # User, Problem, Submission
 │       ├── queues/               # BullMQ submission queue
 │       ├── workers/              # Submission judging worker
-│       └── utils/                # Judge0 client, JWT, hashing, zod schemas, seed scripts
+│       └── utils/                # Judge0 client, JWT, hashing, zod schemas, email, the 20-problem seed
 └── Frontend/
     └── src/
         ├── App.jsx               # Routes + auth guard
-        ├── api/                  # Axios instance, refresh logic, execution API
+        ├── index.css             # Design tokens (colors, fonts, radii) and shared component classes
+        ├── api/                  # Axios instance, refresh logic, execution, profile and admin APIs
         ├── store/                # Redux store, auth slice
-        ├── pages/                # homepage, problem, profile, login, signup
-        ├── components/           # Navbar, filters, table, problem/ and profile/ panels
-        └── constants/            # Supported languages, problem constants
+        ├── theme/                # Light / dark theme switch
+        ├── pages/                # homepage, problem, profile, admin, login, signup, forgot password
+        ├── components/           # Navbar, problem list, leaderboard, topic slider, problem/, profile/ and admin/ panels
+        └── constants/            # Supported languages, topics, problem constants
 ```
 
 ---
@@ -193,14 +213,15 @@ cp backend/.env.example backend/.env
 | `REDIS_HOST` | yes | Redis Cloud host |
 | `REDIS_PORT` | yes | Redis Cloud port |
 | `REDIS_KEY` | yes | Redis Cloud password |
-| `EMAIL_USER` / `EMAIL_PASS` | no | SMTP credentials (for Gmail, use an App Password) |
-| `EMAIL_SERVICE` | no | Nodemailer service, for example `gmail` |
-| `EMAIL_FROM` | no | Sender address |
+| `EMAIL_PROVIDER` | no | `brevo` (default) or `resend` |
+| `BREVO_API_KEY` | no | Brevo API key, when the provider is `brevo` |
+| `RESEND_EMAIL_KEY` | no | Resend API key, when the provider is `resend` |
+| `EMAIL_FROM` | no | Sender address verified with the provider |
 | `CLOUDINARY_CLOUD_NAME` | for photos | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | for photos | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | for photos | Cloudinary API secret (server only, used to sign uploads) |
 
-If you leave the email variables empty, OTP codes are printed to the backend console, which is convenient for local development.
+If you leave the email variables empty, verification and password reset codes are printed to the backend console, which is convenient for local development.
 
 ### 3. Run
 
@@ -218,20 +239,20 @@ npm run dev
 # → http://localhost:5173
 ```
 
-### 4. Seed the problem set
+### 4. Make yourself an admin
 
-The seed script assigns each problem to a creator, so **register one account in the app first**. Then run:
+Problems belong to an admin, and only an existing admin can register another one. So register one account in the app, then promote it by hand: in MongoDB Atlas, set `role: "admin"` on your user document. Log in again to get the Admin link in the account menu.
+
+### 5. Seed the problem set
 
 ```bash
 cd backend
-node src/utils/seedProblems.js
+node src/utils/seedProblems.js          # the 20 classic problems (IDs 1-20)
+node scripts/seedProblems.js --dry-run  # checks the 100 extra problems, writes nothing
+node scripts/seedProblems.js            # adds them (IDs 21-120)
 ```
 
-This adds the 20 starter problems, or updates them if they already exist.
-
-### 5. (Optional) Make yourself an admin
-
-Admin accounts can create, edit and delete problems. Only an existing admin can register a new one, so you have to promote the first admin by hand: in MongoDB Atlas, set `role: "admin"` on your user document.
+Both scripts are safe to re-run: problems that already exist are updated or skipped. You can also add problems one at a time from the admin panel.
 
 ---
 
@@ -247,6 +268,8 @@ Base URL: `http://localhost:3200/api`. Authenticated routes expect `Authorizatio
 | POST | `/login` | – | Log in with username or email. Returns an access token and sets the refresh cookie. |
 | POST | `/refresh` | cookie | Rotate the refresh token and get a new access token |
 | POST | `/logout` | user | Blacklist the access token and revoke the refresh token |
+| POST | `/forgot-password` | – | Email a 6-digit password reset code |
+| POST | `/reset-password` | – | Set a new password with the code |
 | POST | `/admin/register` | admin | Create another admin |
 | DELETE | `/profile` | user | Delete own account and submissions |
 
@@ -256,10 +279,13 @@ Base URL: `http://localhost:3200/api`. Authenticated routes expect `Authorizatio
 |---|---|---|---|
 | GET | `/` | – | List problems (`search`, `difficulty`, `tags`, `page`, `limit`) |
 | GET | `/:id` | – | Problem details by MongoDB `_id` or numeric `problemID`. Hidden tests and solutions are excluded. |
+| GET | `/tag-counts` | – | Number of problems for each tag |
 | GET | `/solved` | user | Problems the user has solved, with a breakdown by difficulty |
+| GET | `/user` | admin | Problems the signed-in admin created |
+| GET | `/:id/full` | admin | Everything about a problem, including hidden tests and reference solutions |
 | GET | `/:id/submissions` | user | The user's submissions for one problem |
 | POST | `/` | admin | Create a problem |
-| PATCH | `/:id` | admin | Update a problem |
+| PATCH | `/:id` | admin | Update a problem. Only the fields sent are changed. |
 | DELETE | `/:id` | admin | Delete a problem |
 
 ### Execution: `/api/execution`
@@ -283,6 +309,8 @@ Base URL: `http://localhost:3200/api`. Authenticated routes expect `Authorizatio
 | PATCH | `/profile/change-password` | user | Change password |
 | POST | `/send-verify-email` | user | Email a 6-digit OTP |
 | POST | `/verify-email` | user | Verify the OTP |
+| GET | `/search` | user | Find users by username or first name (`q`) |
+| GET | `/leaderboard` | user | Ranked users (`period`, `search`, `page`, `limit`) plus the caller's own row |
 | GET | `/:username` | – | Public profile and stats |
 
 ### Rate limits (Redis, per user or IP)
@@ -296,7 +324,11 @@ Base URL: `http://localhost:3200/api`. Authenticated routes expect `Authorizatio
 | Token refresh | 60 / 15 min |
 | Send verification email | 10 / 15 min |
 | Verify OTP | 5 / 15 min |
+| Forgot password | 5 / 15 min |
+| Reset password | 10 / 15 min |
 | Avatar upload | 10 / hour |
+| User search | 60 / minute |
+| Leaderboard | 60 / minute |
 
 When you go over a limit, the API returns `429` with `Retry-After` and `X-RateLimit-*` headers.
 
@@ -320,7 +352,11 @@ These are deliberate trade-offs for a free-tier deployment, listed so they're ea
 - **Development-only settings in code.** The CORS origin (`http://localhost:5173`), the API URL in the frontend (`Frontend/src/api/refresh.js`) and the cookie `secure: false` flag are hard-coded. Move them to environment variables before deploying.
 - **One active session per user.** A single refresh token per user means logging in on a second device signs out the first one.
 - **Single instance.** The worker runs inside the API process. That's fine at small scale; to grow, run the worker as its own service.
-- **Email verification isn't enforced yet.** Unverified users can still submit.
+- **Email verification has no screen yet.** The endpoints exist, but the frontend doesn't call them, and unverified users can still submit.
+- **Contest and Chat Room are placeholders.** The tabs open "coming soon" pages.
+- **The leaderboard is recalculated on every request.** Fine at small scale; it would need caching with thousands of users.
+- **Admin edits are limited to about 100 KB per request,** so the largest seeded hidden tests can't be edited from the panel.
+- **No automated test suite.** The seed script checks its own problems; the rest was tested by hand and with throwaway scripts.
 - **Polling, not push.** The client polls for verdicts every second instead of receiving them over a WebSocket.
 
 ---
@@ -330,6 +366,8 @@ These are deliberate trade-offs for a free-tier deployment, listed so they're ea
 - **Interview Mode:** an AI interviewer that watches the candidate code in real time (Socket.io telemetry), detects when they're stuck with a heuristic "stuck index", gives graded hints through an LLM, and writes a post-interview evaluation
 - Push verdicts over WebSockets instead of polling
 - Self-hosted Judge0 and environment-based production config
+- Contests: admin-created, timed, with their own standings
+- Email verification screen
 - Automated tests (Jest) and CI with GitHub Actions
 - Discussion and editorial pages for each problem
 
