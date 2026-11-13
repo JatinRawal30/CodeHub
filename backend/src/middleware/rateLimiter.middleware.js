@@ -122,8 +122,14 @@ const userSearchLimiter = createRateLimiter({
     prefix: 'user-search', limit: 60, windowSeconds: 60, actionName: 'searches',
 });
 
+// the leaderboard search box is debounced client-side; 60 per minute per user
+const leaderboardLimiter = createRateLimiter({
+    prefix: 'leaderboard', limit: 60, windowSeconds: 60, actionName: 'leaderboard requests',
+});
+
 module.exports = {
     createRateLimiter,
+    leaderboardLimiter,
     loginLimiter,
     registerLimiter,
     refreshLimiter,

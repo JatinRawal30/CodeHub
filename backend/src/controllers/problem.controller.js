@@ -62,6 +62,17 @@ async function getProblemByID(req, res) {
     }
 }
 
+async function getFullProblem(req, res) {
+    try {
+        const problem = await problemService.getFullProblem(req.params.id);
+
+        return res.status(200).json({ problem });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({ error: error.message });
+    }
+}
+
 async function getAllProblems(req, res) {
     try {
         const { difficulty, tags, page, limit, search } = req.query;
@@ -74,6 +85,15 @@ async function getAllProblems(req, res) {
         });
 
         return res.status(200).json(result);
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({ error: error.message });
+    }
+}
+
+async function getTagCounts(req, res) {
+    try {
+        return res.status(200).json({ counts: await problemService.getTagCounts() });
     } catch (error) {
         const statusCode = error.statusCode || 500;
         return res.status(statusCode).json({ error: error.message });
@@ -108,7 +128,9 @@ module.exports = {
     updateProblem,
     deleteProblem,
     getProblemByID,
+    getFullProblem,
     getAllProblems,
+    getTagCounts,
     getUserProblem,
     getSolvedProblems,
 };

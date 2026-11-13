@@ -69,7 +69,7 @@ const PasswordStrength = ({ password = "" }) => {
         {checks.map((_, i) => (
           <div
             key={i}
-            className={`h-1 flex-1 rounded-sm transition-colors duration-300 ${
+            className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
               i < strength ? STRENGTH_BAR[strength] : "bg-line"
             }`}
           />
@@ -251,7 +251,7 @@ export default function Signup() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2 rounded text-body-sm font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2.5 rounded-full text-body-sm font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -278,7 +278,7 @@ export default function Signup() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm((p) => !p)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2 rounded text-body-sm font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2.5 rounded-full text-body-sm font-medium text-fg-muted hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
                 >
                   {showConfirm ? "Hide" : "Show"}
                 </button>

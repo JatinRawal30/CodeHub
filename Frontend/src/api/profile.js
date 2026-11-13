@@ -68,3 +68,15 @@ export async function searchUsers(q, signal) {
   const res = await api.get("/user/search", { params: { q }, signal });
   return res.data.users;
 }
+
+// Permanently deletes the signed-in user's account along with their submissions
+export async function deleteMyAccount() {
+  await api.delete("/auth/profile");
+}
+
+// { rows, me, pagination: { currentPage, totalPages, totalUsers }, period }.
+// period: "all" | "month" | "week". `me` is the viewer's own row, or null when they aren't ranked.
+export async function fetchLeaderboard({ period, page, search }, signal) {
+  const res = await api.get("/user/leaderboard", { params: { period, page, search: search || undefined }, signal });
+  return res.data;
+}

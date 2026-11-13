@@ -39,6 +39,17 @@ async function searchUsers(req, res) {
     }
 }
 
+async function getLeaderboard(req, res) {
+    try {
+        const { period, page, limit, search } = req.query;
+        const leaderboard = await userService.getLeaderboard({ period, page, limit, search }, req.user.id);
+        return res.status(200).json(leaderboard);
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({ error: error.message });
+    }
+}
+
 async function updateMyProfile(req, res) {
     try {
         const updatedProfile = await userService.updateMyProfile(req.user.id, req.body);
@@ -81,6 +92,7 @@ module.exports = {
     getMyProfile,
     getPublicProfile,
     searchUsers,
+    getLeaderboard,
     updateMyProfile,
     changePassword
 };

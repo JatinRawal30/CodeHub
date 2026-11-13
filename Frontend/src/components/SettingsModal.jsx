@@ -1,4 +1,10 @@
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import UserAvatar from "./UserAvatar";
+import ConfirmDialog from "./admin/ConfirmDialog";
+import { deleteMyAccount } from "../api/profile";
+import { getApiErrorMessage } from "../api/execution";
+import { clearAuth } from "../store/slices/authSlice";
 
 export default function SettingsModal({
   isOpen = false,
@@ -7,6 +13,11 @@ export default function SettingsModal({
   profile,
   totalSolvedCount = 0,
 }) {
+  const dispatch = useDispatch();
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   if (!isOpen) return null;
 
   const username = profile?.username || user?.username || "Coder";
@@ -15,6 +26,19 @@ export default function SettingsModal({
   const role = profile?.role || user?.role || "user";
   const bio = profile?.bio || "No bio yet";
   const avatar = user?.avatar || profile?.avatar || null;
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteMyAccount();
+      dispatch(clearAuth()); // signed out: the route guard in App sends the user to /login
+    } catch (err) {
+      setDeleteError(getApiErrorMessage(err, "Couldn't delete your account. Try again."));
+      setIsDeleting(false);
+      setIsConfirmingDelete(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-backdrop backdrop-blur-sm flex items-center justify-center p-4">
@@ -67,6 +91,21 @@ export default function SettingsModal({
               <span className="text-fg truncate max-w-[200px]">{bio}</span>
             </div>
           </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-body-sm">
+              <div className="font-medium text-fg">Delete account</div>
+              <div className="text-fg-muted">Removes your profile and all your submissions for good.</div>
+            </div>
+            <button type="button" onClick={() => setIsConfirmingDelete(true)} className="btn btn-danger-soft btn-sm shrink-0">
+              Delete account
+            </button>
+          </div>
+          {deleteError && (
+            <p className="alert alert-error" role="alert">
+              {deleteError}
+            </p>
+          )}
         </div>
 
         <div className="pt-4 border-t border-line flex justify-end">
@@ -78,6 +117,18 @@ export default function SettingsModal({
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={isConfirmingDelete}
+        title="Delete your account?"
+        body={`This permanently deletes @${username}, your profile and all your submissions. It can't be undone.${
+          role === "admin" ? " If this is the only admin account, no one will be able to manage problems afterwards." : ""
+        }`}
+        confirmLabel="Delete my account"
+        isBusy={isDeleting}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setIsConfirmingDelete(false)}
+      />
     </div>
   );
 }

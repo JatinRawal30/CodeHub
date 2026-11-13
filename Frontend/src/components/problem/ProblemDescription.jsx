@@ -63,7 +63,7 @@ export default function ProblemDescription({ problem, isSolved }) {
           <ul className="list-disc pl-5 space-y-1.5 marker:text-fg-subtle">
             {problem.constraints.map((c, i) => (
               <li key={i}>
-                <code className="px-1.5 py-0.5 rounded border border-line bg-surface-alt text-fg-body text-code-sm">{c}</code>
+                <code className="px-1.5 py-0.5 rounded-[6px] border border-line bg-surface-alt text-fg-body text-code-sm">{c}</code>
               </li>
             ))}
           </ul>

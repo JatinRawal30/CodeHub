@@ -134,7 +134,7 @@ Stores:
 ### Q3: How do you prevent users from cheating and inspecting hidden test cases?
 > **Answer:**
 > We implement **Field Projection Filtering** at the MongoDB query level:
-> - When a user fetches problem details (`GET /api/problems/get/:id`), our query explicitly excludes sensitive fields: `.select("-hiddenTestCases -referenceSolution")`.
+> - When a user fetches problem details (`GET /api/problems/:id`), our query explicitly excludes sensitive fields: `.select("-hiddenTestCases -referenceSolution")`.
 > - Hidden test cases are only loaded internally in memory during `submitCode` on the backend, and are never returned in client HTTP responses.
 
 ---

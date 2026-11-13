@@ -1,3 +1,37 @@
+const LEVELS = [
+  ["all", "All"],
+  ["easy", "Easy"],
+  ["medium", "Medium"],
+  ["hard", "Hard"],
+];
+const STATUSES = [
+  ["all", "All"],
+  ["solved", "Solved"],
+  ["unsolved", "Unsolved"],
+];
+
+export function Segmented({ label, options, value, onChange }) {
+  return (
+    <div className="flex items-center gap-1" role="radiogroup" aria-label={label}>
+      <span className="mr-2 text-xs uppercase tracking-[0.18em] text-fg-subtle">{label}</span>
+      {options.map(([id, text]) => (
+        <button
+          key={id}
+          type="button"
+          role="radio"
+          aria-checked={value === id}
+          onClick={() => onChange(id)}
+          className={`cursor-pointer rounded-full px-3 py-1.5 text-sm transition-colors hover:text-fg ${
+            value === id ? "bg-surface-hover text-fg" : "text-fg-muted"
+          }`}
+        >
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ProblemFilters({
   searchQuery,
   onSearchChange,
@@ -6,59 +40,27 @@ export default function ProblemFilters({
   selectedStatus,
   onStatusChange,
 }) {
-  // a select that's narrowing the list gets the primary-soft treatment
-  const selectClass = (isActive) =>
-    `input w-auto h-8 pr-8 text-body-sm cursor-pointer ${
-      isActive ? "bg-primary-soft text-primary-soft-fg border-primary-soft-line" : ""
-    }`;
-
   return (
-    <div className="card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3">
-      <div className="relative flex-1 max-w-md">
-        <svg
-          className="w-4 h-4 text-fg-subtle absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
+    <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+      <label className="flex h-11 min-w-0 flex-1 basis-72 items-center gap-3 rounded-full bg-surface px-5 text-fg-muted transition-colors focus-within:bg-surface-hover">
+        <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.5-3.5" />
         </svg>
         <input
           type="text"
-          placeholder="Search questions by title or ID..."
+          aria-label="Search questions"
+          placeholder="Search questions by title or number…"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="input pl-9"
+          className="w-full bg-transparent text-base text-fg outline-none placeholder:text-fg-muted"
         />
-      </div>
-
-      <div className="flex items-center gap-2 flex-wrap">
-        <select
-          value={selectedDifficulty}
-          onChange={(e) => onDifficultyChange(e.target.value)}
-          className={selectClass(selectedDifficulty !== "all")}
-        >
-          <option value="all">Difficulty: All</option>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
-
-        <select
-          value={selectedStatus}
-          onChange={(e) => onStatusChange(e.target.value)}
-          className={selectClass(selectedStatus !== "all")}
-        >
-          <option value="all">Status: All</option>
-          <option value="solved">Solved</option>
-          <option value="unsolved">Unsolved</option>
-        </select>
-      </div>
+      </label>
+      <Segmented label="Level" options={LEVELS} value={selectedDifficulty} onChange={onDifficultyChange} />
+      {/* the admin list has no solved/unsolved state */}
+      {onStatusChange && (
+        <Segmented label="Status" options={STATUSES} value={selectedStatus} onChange={onStatusChange} />
+      )}
     </div>
   );
 }

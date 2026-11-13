@@ -1,16 +1,9 @@
 import { useSyncExternalStore } from "react";
-import { readStorage, writeStorage } from "../utils/storage";
+import { writeStorage } from "../utils/storage";
 
 // index.html applies the stored theme before React loads; keep the key in sync with it
 const STORAGE_KEY = "codehub-theme";
-const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
-
 const listeners = new Set();
-
-function storedTheme() {
-  const value = readStorage(STORAGE_KEY);
-  return value === "light" || value === "dark" ? value : null;
-}
 
 export function getTheme() {
   return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
@@ -33,11 +26,6 @@ export function setTheme(theme) {
 export function toggleTheme() {
   setTheme(getTheme() === "dark" ? "light" : "dark");
 }
-
-// until the user picks one, follow the OS setting live
-systemDark.addEventListener("change", (e) => {
-  if (!storedTheme()) applyTheme(e.matches ? "dark" : "light");
-});
 
 function subscribe(listener) {
   listeners.add(listener);

@@ -59,7 +59,11 @@ class ProblemService {
             throw new BadRequestError("Invalid request body", validation.error.issues);
         }
 
-        const updates = validation.data;
+        // zod fills in defaults (tags: [], timeLimit: 1, ...) for fields the request left out,
+        // which would wipe them; keep only the fields that were actually sent
+        const updates = Object.fromEntries(
+            Object.entries(validation.data).filter(([field]) => field in payload)
+        );
         if (Object.keys(updates).length === 0) {
             throw new BadRequestError("No valid fields provided to update");
         }
@@ -91,6 +95,21 @@ class ProblemService {
         return problem;
     }
 
+    // admin only: everything, including hidden test cases and reference solutions, for the edit form
+    async getFullProblem(id) {
+        const query = this.getProblemQuery(id);
+        if (!query) {
+            throw new BadRequestError("Invalid problem identifier");
+        }
+
+        const problem = await Problem.findOne(query);
+        if (!problem) {
+            throw new NotFoundError("Problem not found");
+        }
+
+        return problem;
+    }
+
     // leaves out hidden test cases and the reference solution
     async getProblemById(id) {
         const query = this.getProblemQuery(id);
@@ -107,6 +126,15 @@ class ProblemService {
         }
 
         return problem;
+    }
+
+    // { tag: number of problems with it }, for the homepage topic cards
+    async getTagCounts() {
+        const rows = await Problem.aggregate([
+            { $unwind: "$tags" },
+            { $group: { _id: "$tags", count: { $sum: 1 } } },
+        ]);
+        return Object.fromEntries(rows.map((row) => [row._id, row.count]));
     }
 
     async getAllProblems({ difficulty, tags, page = 1, limit = 10, search }) {

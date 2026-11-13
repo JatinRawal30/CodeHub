@@ -8,17 +8,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Inter:wght@700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600&display=swap"
       rel="stylesheet"
     />
     <script>
-      // Set the theme before first paint so there's no light/dark flash. Keep in sync with src/theme/theme.js
+      // Set the theme before first paint so there's no flash. Dark is the default; light only if the user picked it.
+      // Keep in sync with src/theme/theme.js
       (function () {
         var theme;
         try { theme = localStorage.getItem("codehub-theme"); } catch (e) {}
-        if (theme !== "light" && theme !== "dark") {
-          theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
+        if (theme !== "light") theme = "dark";
         document.documentElement.setAttribute("data-theme", theme);
       })();
     </script>

@@ -28,6 +28,129 @@ class UserService {
         }));
     }
 
+    // Users ranked by problems solved (the first accepted submission per problem). Admins are left out.
+    // period "week" / "month" counts only problems first solved in the last 7 / 30 days.
+    // Ties share a rank; inside a tie, more hard problems come first, then whoever got there earlier.
+    async getLeaderboard({ period = "all", page = 1, limit = 10, search = "" } = {}, viewerId) {
+        const days = { week: 7, month: 30 }[period];
+        const since = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : null;
+        const countIf = (difficulty) => ({ $sum: { $cond: [{ $eq: ["$problem.difficulty", difficulty] }, 1, 0] } });
+
+        // shortcut: the whole ranking is rebuilt and ranked in memory on every request;
+        // cache it in Redis or precompute it once there are thousands of users
+        const ranked = await Submission.aggregate([
+            { $match: { verdict: "Accepted" } },
+            { $group: { _id: { userId: "$userId", problemId: "$problemId" }, solvedAt: { $min: "$createdAt" } } },
+            ...(since ? [{ $match: { solvedAt: { $gte: since } } }] : []),
+            {
+                $lookup: {
+                    from: "problems",
+                    localField: "_id.problemId",
+                    foreignField: "_id",
+                    pipeline: [{ $project: { difficulty: 1 } }],
+                    as: "problem",
+                },
+            },
+            { $unwind: "$problem" }, // drops solves of problems that were deleted since
+            {
+                $group: {
+                    _id: "$_id.userId",
+                    solved: { $sum: 1 },
+                    easy: countIf("easy"),
+                    medium: countIf("medium"),
+                    hard: countIf("hard"),
+                    lastSolvedAt: { $max: "$solvedAt" },
+                },
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    pipeline: [{ $project: { username: 1, firstName: 1, lastName: 1, "profile.avatar.url": 1, isVerified: 1, role: 1 } }],
+                    as: "user",
+                },
+            },
+            { $unwind: "$user" },
+            { $match: { "user.role": { $ne: "admin" } } },
+            { $sort: { solved: -1, hard: -1, lastSolvedAt: 1, "user.username": 1 } },
+        ]);
+
+        // competition ranking: 1, 2, 2, 4
+        ranked.forEach((row, i) => {
+            row.rank = i > 0 && row.solved === ranked[i - 1].solved ? ranked[i - 1].rank : i + 1;
+        });
+
+        const query = String(search ?? "").trim().toLowerCase().slice(0, 20);
+        const matches = query ? ranked.filter((row) => row.user.username.toLowerCase().includes(query)) : ranked;
+
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
+        const pageRows = matches.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+        const me = ranked.find((row) => String(row._id) === String(viewerId)) || null;
+
+        // acceptance rate and most-used language, only for the users being returned
+        const shown = me ? [...pageRows, me] : pageRows;
+        const perLanguage = await Submission.aggregate([
+            {
+                $match: {
+                    userId: { $in: shown.map((row) => row._id) },
+                    verdict: { $nin: ["Pending", "Internal Error"] }, // never really judged
+                    ...(since && { createdAt: { $gte: since } }),
+                },
+            },
+            {
+                $group: {
+                    _id: { userId: "$userId", language: "$language" },
+                    judged: { $sum: 1 },
+                    accepted: { $sum: { $cond: [{ $eq: ["$verdict", "Accepted"] }, 1, 0] } },
+                },
+            },
+        ]);
+        const statsByUser = new Map();
+        for (const { _id, judged, accepted } of perLanguage) {
+            const key = String(_id.userId);
+            const stats = statsByUser.get(key) || { judged: 0, accepted: 0, topLanguage: null, topAccepted: 0 };
+            stats.judged += judged;
+            stats.accepted += accepted;
+            if (accepted > stats.topAccepted) {
+                stats.topAccepted = accepted;
+                stats.topLanguage = _id.language;
+            }
+            statsByUser.set(key, stats);
+        }
+
+        const toRow = (row) => {
+            const stats = statsByUser.get(String(row._id));
+            return {
+                rank: row.rank,
+                username: row.user.username,
+                name: [row.user.firstName, row.user.lastName].filter(Boolean).join(" "),
+                avatar: row.user.profile?.avatar?.url || null,
+                isVerified: Boolean(row.user.isVerified),
+                solved: row.solved,
+                easy: row.easy,
+                medium: row.medium,
+                hard: row.hard,
+                // percent with one decimal
+                acceptanceRate: stats?.judged ? Math.round((stats.accepted / stats.judged) * 1000) / 10 : null,
+                topLanguage: stats?.topLanguage || null,
+                lastSolvedAt: row.lastSolvedAt,
+            };
+        };
+
+        return {
+            period: days ? period : "all",
+            rows: pageRows.map(toRow),
+            me: me ? toRow(me) : null, // null: the viewer is an admin or has no solves in this period
+            pagination: {
+                currentPage: pageNum,
+                totalPages: Math.max(1, Math.ceil(matches.length / limitNum)),
+                totalUsers: matches.length,
+            },
+        };
+    }
+
     // calendar covers the past year, keyed by UTC date
     async getPublicProfile(username) {
         const foundUser = await user
@@ -97,8 +220,9 @@ class UserService {
 
             Problem.aggregate([{ $group: { _id: "$difficulty", count: { $sum: 1 } } }]),
 
-            // rank = 1 + number of users who solved more problems
+            // rank = 1 + number of users who solved more problems (admins aren't ranked, as on the leaderboard)
             user.countDocuments({
+                role: { $ne: "admin" },
                 $expr: {
                     $gt: [
                         { $size: { $ifNull: ["$problemsSolved", []] } },

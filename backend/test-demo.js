@@ -114,8 +114,8 @@ async function runDemo() {
         }, { Authorization: `Bearer ${adminToken}` });
         console.log(`   Status: ${subAdminRes.status}, Message: "${subAdminRes.body.message}" ✅`);
 
-        console.log("\n4️⃣ [POST /api/problems/create] Admin Creating 'Sum of Two Numbers' Problem...");
-        const problemRes = await request("POST", "/api/problems/create", {
+        console.log("\n4️⃣ [POST /api/problems] Admin Creating 'Sum of Two Numbers' Problem...");
+        const problemRes = await request("POST", "/api/problems", {
             problemID: timestamp % 100000,
             title: "Sum of Two Numbers",
             description: "Read two space-separated integers from stdin and print their sum.",

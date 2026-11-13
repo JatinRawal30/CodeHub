@@ -3,138 +3,182 @@
 /* dark: utilities follow the data-theme attribute set by src/theme, not the OS */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* Radius scale: one soft 14px base. Not inline, so a subtree can override it (see .pagination-classic). */
+@theme {
+  --radius-sm: 0.625rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.375rem;
+  --radius-3xl: 1.625rem;
+}
+
 /*
  * Semantic tokens. Components use these (bg-surface, text-fg-muted, border-line, ...)
- * instead of raw hex, so both themes come from the same markup.
- * Light values follow DESIGN.md; dark is the same system on a slate canvas.
+ * instead of raw colors, so both themes come from the same markup.
+ * Dark is the designed theme: charcoal canvas, mint accent, amber logo. Light mirrors it on paper.
+ * Surfaces are the ink color at low opacity over the canvas, mixed here so they stay opaque.
  */
 :root {
   color-scheme: light;
 
-  /* surfaces: canvas < surface (cards) ; surface-alt for toolbars/headers */
-  --canvas: #f8fafc;
-  --canvas-alt: #f1f5f9;
-  --surface: #f5f5f5;
-  --surface-alt: #efefef;
-  --surface-hover: #e9e9e9;
-  --overlay: rgba(245, 245, 245, 0.92);
-  --backdrop: rgba(15, 23, 42, 0.35);
+  --canvas: oklch(0.985 0.002 220);
+  --canvas-alt: oklch(0.965 0.003 220);
+  --surface: color-mix(in srgb, oklch(0.2 0.02 245) 4%, var(--canvas));
+  --surface-alt: color-mix(in srgb, oklch(0.2 0.02 245) 6%, var(--canvas));
+  --surface-hover: color-mix(in srgb, oklch(0.2 0.02 245) 8%, var(--canvas));
+  --overlay: oklch(0.995 0.002 220 / 0.94);
+  --backdrop: oklch(0.2 0.02 245 / 0.35);
 
-  --line: #e2e8f0;
-  --line-strong: #cbd5e1;
-  --line-subtle: #f1f5f9;
+  --line: oklch(0.2 0.02 245 / 10%);
+  --line-strong: oklch(0.2 0.02 245 / 17%);
+  --line-subtle: oklch(0.2 0.02 245 / 6%);
 
-  --fg: #0f172a;          /* headings */
-  --fg-body: #334155;     /* body copy */
-  --fg-muted: #64748b;    /* metadata */
-  --fg-subtle: #94a3b8;   /* placeholders, disabled */
+  --fg: oklch(0.22 0.02 245);        /* headings */
+  --fg-body: oklch(0.33 0.02 245);   /* body copy */
+  --fg-muted: oklch(0.47 0.02 240);  /* metadata, placeholders */
+  --fg-subtle: oklch(0.55 0.02 238); /* small labels, disabled */
 
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-fg: #ffffff;
-  --ring: #6366f1;
-  --primary-soft: #eef2ff;
-  --primary-soft-fg: #4338ca;
-  --primary-soft-line: #c7d2fe;
+  --primary: oklch(0.5 0.09 180);
+  --primary-glow: oklch(0.5 0.09 225);
+  --primary-hover: oklch(0.44 0.09 180);
+  --primary-fg: oklch(0.99 0.005 180); /* text on primary, success and danger fills */
+  --ring: oklch(0.5 0.09 180 / 60%);
+  --primary-soft: oklch(0.5 0.09 180 / 10%);
+  --primary-soft-fg: oklch(0.4 0.09 180);
+  --primary-soft-line: oklch(0.5 0.09 180 / 28%);
+
+  /* amber: the "Hub" block in the logo. brand-ink is the same hue dark enough to read as text */
+  --brand: oklch(0.8 0.16 70);
+  --brand-fg: oklch(0.16 0.01 60);
+  --brand-ink: oklch(0.6 0.15 62);
 
   /* success = Easy / Accepted */
-  --success: #059669;
-  --success-soft: #ecfdf5;
-  --success-fg: #047857;
-  --success-line: #a7f3d0;
+  --success: oklch(0.55 0.13 160);
+  --success-soft: oklch(0.55 0.13 160 / 10%);
+  --success-fg: oklch(0.42 0.11 160);
+  --success-line: oklch(0.55 0.13 160 / 28%);
 
   /* warning = Medium / Pending */
-  --warning: #f59e0b;
-  --warning-soft: #fffbeb;
-  --warning-fg: #b45309;
-  --warning-line: #fde68a;
+  --warning: oklch(0.75 0.15 80);
+  --warning-soft: oklch(0.75 0.15 80 / 14%);
+  --warning-fg: oklch(0.48 0.11 70);
+  --warning-line: oklch(0.75 0.15 80 / 38%);
 
   /* danger = Hard / errors / destructive */
-  --danger: #f43f5e;
-  --danger-hover: #e11d48;
-  --danger-soft: #fff1f2;
-  --danger-fg: #be123c;
-  --danger-line: #fecdd3;
+  --danger: oklch(0.55 0.19 22);
+  --danger-hover: oklch(0.49 0.19 22);
+  --danger-soft: oklch(0.55 0.19 22 / 9%);
+  --danger-fg: oklch(0.47 0.17 22);
+  --danger-line: oklch(0.55 0.19 22 / 28%);
 
   /* output terminals stay dark in both themes */
-  --terminal: #0f172a;
-  --terminal-fg: #e2e8f0;
-  --terminal-muted: #94a3b8;
+  --terminal: oklch(0.2 0 0);
+  --terminal-fg: oklch(0.92 0.01 220);
+  --terminal-muted: oklch(0.7 0.02 230);
 
-  --kbd: #f1f5f9;
-  --kbd-fg: #64748b;
+  --kbd: var(--surface-hover);
+  --kbd-fg: var(--fg-muted);
 
-  --dot: rgba(100, 116, 139, 0.28);
-
-  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
-  --shadow-raised: 0 4px 12px -2px rgba(79, 70, 229, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-  --shadow-overlay: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  --shadow-card: 0 1px 2px 0 oklch(0.2 0.02 245 / 5%);
+  --shadow-raised: 0 6px 16px -6px oklch(0.2 0.02 245 / 14%);
+  --shadow-overlay: 0 16px 36px -8px oklch(0.2 0.02 245 / 18%), 0 4px 10px -4px oklch(0.2 0.02 245 / 8%);
+  --shadow-focus: 0 0 0 3px oklch(0.5 0.09 180 / 18%);
+  --shadow-glow: 0 10px 30px -10px oklch(0.5 0.09 180 / 45%);
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* neutral near-black, no blue cast */
-  --canvas: #1b1c1f;
-  --canvas-alt: #18191c;
+  --canvas: oklch(0.205 0 0);
+  --canvas-alt: oklch(0.185 0 0);
+  --surface: color-mix(in srgb, white 3.5%, var(--canvas));
+  --surface-alt: color-mix(in srgb, white 2%, var(--canvas));
+  --surface-hover: color-mix(in srgb, white 5.5%, var(--canvas));
+  --overlay: oklch(0.245 0 0 / 0.96);
+  --backdrop: oklch(0 0 0 / 0.6);
+
+  --line: oklch(1 0 0 / 7%);
+  --line-strong: oklch(1 0 0 / 12%);
+  --line-subtle: oklch(1 0 0 / 4.5%);
+
+  --fg: oklch(0.95 0.01 220);
+  --fg-body: oklch(0.87 0.012 222);
+  --fg-muted: oklch(0.7 0.02 230);
+  --fg-subtle: oklch(0.6 0.02 235);
+
+  --primary: oklch(0.82 0.1 175);
+  --primary-glow: oklch(0.76 0.09 215);
+  --primary-hover: oklch(0.87 0.09 175);
+  --primary-fg: oklch(0.2 0.03 220);
+  --ring: oklch(0.82 0.1 175 / 60%);
+  --primary-soft: oklch(0.82 0.1 175 / 12%);
+  --primary-soft-fg: oklch(0.82 0.1 175);
+  --primary-soft-line: oklch(0.82 0.1 175 / 28%);
+
+  --brand-ink: var(--brand);
+
+  --success: oklch(0.82 0.12 162);
+  --success-soft: oklch(0.82 0.12 162 / 14%);
+  --success-fg: oklch(0.82 0.12 162);
+  --success-line: oklch(0.82 0.12 162 / 28%);
+
+  --warning: oklch(0.85 0.12 85);
+  --warning-soft: oklch(0.85 0.12 85 / 13%);
+  --warning-fg: oklch(0.85 0.12 85);
+  --warning-line: oklch(0.85 0.12 85 / 28%);
+
+  --danger: oklch(0.74 0.14 20);
+  --danger-hover: oklch(0.79 0.13 20);
+  --danger-soft: oklch(0.74 0.14 20 / 14%);
+  --danger-fg: oklch(0.74 0.14 20);
+  --danger-line: oklch(0.74 0.14 20 / 30%);
+
+  --terminal: oklch(0.17 0 0);
+
+  --shadow-card: 0 0 0 0 transparent;
+  --shadow-raised: 0 8px 20px -8px oklch(0 0 0 / 55%);
+  --shadow-overlay: 0 18px 40px -8px oklch(0 0 0 / 65%), 0 4px 10px -4px oklch(0 0 0 / 40%);
+  --shadow-focus: 0 0 0 3px oklch(0.82 0.1 175 / 20%);
+  --shadow-glow: 0 10px 30px -10px oklch(0.82 0.1 175 / 55%);
+}
+
+/*
+ * The pagination keeps its pre-redesign look (indigo tile, 8px corners). ContinuousPagination
+ * reads these tokens, so this pins them to the old values for that subtree only.
+ */
+.pagination-classic {
+  --radius-lg: 0.5rem;
+  --surface: #f5f5f5;
+  --line: #e2e8f0;
+  --fg: #0f172a;
+  --fg-muted: #64748b;
+  --fg-subtle: #94a3b8;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-fg: #ffffff;
+  --ring: #6366f1;
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+  --shadow-raised: 0 4px 12px -2px rgba(79, 70, 229, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+}
+[data-theme="dark"] .pagination-classic {
   --surface: #232428;
-  --surface-alt: #1f2023;
-  --surface-hover: #2b2d31;
-  --overlay: rgba(35, 36, 40, 0.92);
-  --backdrop: rgba(0, 0, 0, 0.6);
-
   --line: #2e3035;
-  --line-strong: #3a3d43;
-  --line-subtle: #27292d;
-
   --fg: #f4f4f5;
-  --fg-body: #d4d4d8;
   --fg-muted: #a1a1aa;
   --fg-subtle: #71717a;
-
   --primary: #6366f1;
   --primary-hover: #4f46e5;
-  --primary-fg: #ffffff;
   --ring: #818cf8;
-  --primary-soft: rgba(99, 102, 241, 0.14);
-  --primary-soft-fg: #a5b4fc;
-  --primary-soft-line: rgba(129, 140, 248, 0.32);
-
-  --success: #10b981;
-  --success-soft: rgba(16, 185, 129, 0.12);
-  --success-fg: #34d399;
-  --success-line: rgba(52, 211, 153, 0.3);
-
-  --warning: #f59e0b;
-  --warning-soft: rgba(245, 158, 11, 0.12);
-  --warning-fg: #fbbf24;
-  --warning-line: rgba(251, 191, 36, 0.3);
-
-  --danger: #f43f5e;
-  --danger-hover: #e11d48;
-  --danger-soft: rgba(244, 63, 94, 0.12);
-  --danger-fg: #fb7185;
-  --danger-line: rgba(251, 113, 133, 0.3);
-
-  --terminal: #121316;
-  --terminal-fg: #e2e8f0;
-  --terminal-muted: #94a3b8;
-
-  --kbd: #2b2d31;
-  --kbd-fg: #a1a1aa;
-
-  --dot: rgba(161, 161, 170, 0.32);
-
   --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-raised: 0 4px 12px -2px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(99, 102, 241, 0.06);
-  --shadow-overlay: 0 16px 36px -6px rgba(0, 0, 0, 0.6), 0 4px 10px -2px rgba(0, 0, 0, 0.4);
-  --shadow-focus: 0 0 0 3px rgba(129, 140, 248, 0.25);
 }
 
 @theme inline {
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-logo: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --color-canvas: var(--canvas);
   --color-canvas-alt: var(--canvas-alt);
@@ -154,12 +198,17 @@
   --color-fg-subtle: var(--fg-subtle);
 
   --color-primary: var(--primary);
+  --color-primary-glow: var(--primary-glow);
   --color-primary-hover: var(--primary-hover);
   --color-primary-fg: var(--primary-fg);
   --color-ring: var(--ring);
   --color-primary-soft: var(--primary-soft);
   --color-primary-soft-fg: var(--primary-soft-fg);
   --color-primary-soft-line: var(--primary-soft-line);
+
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-ink: var(--brand-ink);
 
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
@@ -188,22 +237,24 @@
   --shadow-raised: var(--shadow-raised);
   --shadow-overlay: var(--shadow-overlay);
   --shadow-focus: var(--shadow-focus);
+  --shadow-glow: var(--shadow-glow);
 }
 
 @layer base {
   html {
     background: var(--canvas);
+    scrollbar-color: var(--line-strong) transparent;
   }
 
   body {
     @apply bg-canvas text-fg-body font-sans antialiased;
     font-size: 14px;
     line-height: 20px;
-    letter-spacing: -0.005em;
+    caret-color: var(--primary);
   }
 
   h1, h2, h3, h4 {
-    @apply text-fg;
+    @apply text-fg font-display;
     letter-spacing: -0.02em;
   }
 
@@ -227,68 +278,86 @@
   }
 }
 
-/* dotted grid backdrop; fixed so the dots stay put while the page scrolls */
-@utility bg-dot-grid {
-  background-color: var(--canvas);
-  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
-  background-size: 25px 25px;
-  background-position: 6px 6px;
-  background-attachment: fixed;
+/* mint to sky fill for the main call to action and the avatar fallback */
+@utility bg-gradient-primary {
+  background-image: linear-gradient(135deg, var(--primary), var(--primary-glow));
 }
 
-/* typography scale from DESIGN.md */
-@utility text-display { font-size: 48px; line-height: 56px; font-weight: 600; letter-spacing: -0.03em; }
-@utility text-headline-lg { font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -0.025em; }
-@utility text-headline-md { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.02em; }
-@utility text-headline-sm { font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -0.015em; }
-@utility text-body-lg { font-size: 16px; line-height: 24px; letter-spacing: -0.01em; }
-@utility text-body-md { font-size: 14px; line-height: 20px; letter-spacing: -0.005em; }
+@utility fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up {
+    animation: none;
+  }
+}
+
+/* typography scale; headings are set in the display face */
+@utility text-display { font-family: var(--font-display); font-size: 48px; line-height: 56px; font-weight: 600; letter-spacing: -0.03em; }
+@utility text-headline-lg { font-family: var(--font-display); font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -0.025em; }
+@utility text-headline-md { font-family: var(--font-display); font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.02em; }
+@utility text-headline-sm { font-family: var(--font-display); font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -0.015em; }
+@utility text-body-lg { font-size: 16px; line-height: 24px; }
+@utility text-body-md { font-size: 14px; line-height: 20px; }
 @utility text-body-sm { font-size: 13px; line-height: 18px; }
 @utility text-code-md { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 13px; line-height: 18px; font-weight: 500; letter-spacing: -0.01em; }
 @utility text-code-sm { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 11px; line-height: 16px; font-weight: 500; }
-@utility label-caps { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+@utility label-caps { font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; }
 
 /*
- * Shared component classes from DESIGN.md. Prefer these over re-spelling the
- * same utilities in every file; add utilities on top for layout.
+ * Shared component classes. Prefer these over re-spelling the same utilities
+ * in every file; add utilities on top for layout.
  */
 @layer components {
   .card {
-    @apply bg-surface border border-line rounded-lg shadow-card;
+    @apply bg-surface border border-line rounded-2xl shadow-card;
   }
   .card-raised {
-    @apply bg-surface border border-line-strong rounded-lg shadow-raised;
+    @apply bg-surface border border-line-strong rounded-2xl shadow-raised;
   }
   .popover {
-    @apply bg-overlay border border-line-strong rounded-md shadow-overlay;
-    backdrop-filter: blur(8px);
+    @apply bg-overlay border border-line-strong rounded-xl shadow-overlay;
+    backdrop-filter: blur(12px);
   }
 
+  /* buttons and fields are pills */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-md border text-body-md font-medium
-      transition-colors duration-150 cursor-pointer select-none
+    @apply inline-flex items-center justify-center gap-2 h-9 px-4 rounded-full border text-body-md font-medium
+      transition-[color,background-color,border-color,filter,translate] duration-150 cursor-pointer select-none
       disabled:opacity-50 disabled:cursor-not-allowed;
   }
-  .btn-sm { @apply h-8 px-3 text-body-sm; }
-  .btn-lg { @apply h-10 px-4; }
+  .btn-sm { @apply h-8 px-3.5 text-body-sm; }
+  .btn-lg { @apply h-11 px-6 text-body-lg; }
   .btn-primary {
-    @apply bg-primary text-primary-fg border-primary-hover enabled:hover:bg-primary-hover;
+    @apply bg-gradient-primary text-primary-fg border-transparent enabled:hover:brightness-105 enabled:hover:-translate-y-px;
   }
   .btn-secondary {
-    @apply bg-surface text-fg border-line-strong enabled:hover:bg-surface-alt enabled:hover:border-fg-subtle;
+    @apply bg-surface text-fg border-line enabled:hover:bg-surface-hover enabled:hover:border-line-strong;
   }
   .btn-ghost {
     @apply bg-transparent text-fg-muted border-transparent enabled:hover:bg-surface-hover enabled:hover:text-fg;
   }
   /* amber, matches the "Hub" block in the logo */
   .btn-accent {
-    @apply bg-warning text-slate-950 border-warning font-semibold enabled:hover:brightness-95;
+    @apply bg-brand text-brand-fg border-transparent font-semibold enabled:hover:brightness-95;
   }
   .btn-success {
-    @apply bg-success text-white border-success enabled:hover:brightness-95;
+    @apply bg-success text-primary-fg border-transparent enabled:hover:brightness-105;
   }
   .btn-danger {
-    @apply bg-danger text-white border-danger enabled:hover:bg-danger-hover;
+    @apply bg-danger text-primary-fg border-transparent enabled:hover:bg-danger-hover;
   }
   .btn-danger-soft {
     @apply bg-danger-soft text-danger-fg border-danger-line enabled:hover:brightness-95;
@@ -296,27 +365,27 @@
   .btn-icon { @apply w-9 px-0; }
 
   .input {
-    @apply w-full h-9 px-3 rounded-md bg-surface border border-line-strong text-fg text-body-md
-      placeholder:text-fg-subtle outline-none transition-[border-color,box-shadow] duration-150
-      focus:border-ring focus:shadow-focus disabled:opacity-60;
+    @apply w-full h-9 px-4 rounded-full bg-surface border border-line text-fg text-body-md
+      placeholder:text-fg-muted outline-none transition-[background-color,border-color,box-shadow] duration-150
+      focus:bg-surface-hover focus:border-ring focus:shadow-focus disabled:opacity-60;
   }
   .input-error {
     @apply border-danger focus:border-danger;
   }
-  textarea.input { @apply h-auto py-2; }
+  textarea.input { @apply h-auto py-2.5 rounded-2xl; }
   select.input {
-    @apply appearance-none pr-8 cursor-pointer bg-no-repeat;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2364748b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-    background-position: right 0.6rem center;
+    @apply appearance-none pr-9 cursor-pointer bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a94a3' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.8rem center;
     background-size: 14px;
   }
 
   .kbd {
-    @apply inline-flex items-center px-1.5 rounded bg-kbd text-kbd-fg text-code-sm border border-line;
+    @apply inline-flex items-center px-1.5 rounded-sm bg-kbd text-kbd-fg text-code-sm border border-line;
   }
 
   .badge {
-    @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-code-sm whitespace-nowrap;
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-code-sm whitespace-nowrap;
   }
   .badge-easy, .badge-success { @apply bg-success-soft text-success-fg border-success-line; }
   .badge-medium, .badge-warning { @apply bg-warning-soft text-warning-fg border-warning-line; }
@@ -325,18 +394,22 @@
   .badge-neutral { @apply bg-surface-hover text-fg-muted border-line; }
 
   .alert {
-    @apply flex items-start gap-2 px-3 py-2.5 rounded-md border text-body-sm;
+    @apply flex items-start gap-2 px-3.5 py-2.5 rounded-xl border text-body-sm;
   }
   .alert-error { @apply bg-danger-soft text-danger-fg border-danger-line; }
   .alert-success { @apply bg-success-soft text-success-fg border-success-line; }
   .alert-info { @apply bg-primary-soft text-primary-soft-fg border-primary-soft-line; }
 
   .checkbox {
-    @apply appearance-none w-4 h-4 rounded border-[1.5px] border-fg-subtle bg-surface cursor-pointer
+    @apply appearance-none w-4 h-4 rounded-[5px] border-[1.5px] border-fg-subtle bg-surface cursor-pointer
       transition-colors duration-[120ms] ease-out checked:bg-primary checked:border-primary;
   }
+  /* the tick is the color of text on primary: white in light, ink in dark */
   .checkbox:checked {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  [data-theme="dark"] .checkbox:checked {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' stroke='%23141c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
   .divider { @apply h-px bg-line; }
