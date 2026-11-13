@@ -1,8 +1,9 @@
+// Tailwind's green-500, red-500, yellow-400 and orange-400: plain verdict colors rather than the theme's softer mint, coral and gold
 const VERDICT_ROWS = [
-  { key: "accepted", label: "Accepted", color: "var(--success)" },
-  { key: "wrongAnswer", label: "Wrong Answer", color: "var(--danger)" },
-  { key: "timeLimitExceeded", label: "Time Limit Exceeded", color: "var(--warning)" },
-  { key: "runtimeError", label: "Runtime Error", color: "color-mix(in srgb, var(--danger) 55%, var(--warning))" },
+  { key: "accepted", label: "Accepted", color: "oklch(72.3% 0.219 149.579)" },
+  { key: "wrongAnswer", label: "Wrong Answer", color: "oklch(63.7% 0.237 25.331)" },
+  { key: "timeLimitExceeded", label: "Time Limit Exceeded", color: "oklch(85.2% 0.199 91.936)" },
+  { key: "runtimeError", label: "Runtime Error", color: "oklch(75% 0.183 55.934)" },
   { key: "compilationError", label: "Compilation Error", color: "var(--fg-subtle)" },
 ];
 
@@ -24,7 +25,7 @@ export default function SubmissionStatsCard({ submissionStats }) {
         </div>
         <div className="px-3 py-2 rounded-md bg-surface-alt border border-line-subtle">
           <div className="label-caps text-fg-subtle">Accepted</div>
-          <div className="mt-0.5 font-mono text-headline-sm text-success-fg">{totalAccepted}</div>
+          <div className="mt-0.5 font-mono text-headline-sm text-green-600 dark:text-green-400">{totalAccepted}</div>
         </div>
       </div>
 

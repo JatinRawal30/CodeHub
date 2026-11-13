@@ -8,6 +8,7 @@ import api from "../api/axios";
 import { setCredentials } from "../store/slices/authSlice";
 import CodeHubLogo from "../components/CodeHubLogo";
 import ThemeToggle from "../components/ThemeToggle";
+import { DEMO_CREDENTIALS } from "../constants/demo";
 
 const loginSchema = z.object({
   identifier: z
@@ -180,6 +181,18 @@ export default function Login() {
             <span className="text-body-sm text-fg-subtle">or</span>
             <div className="divider flex-1" />
           </div>
+
+          <button
+            type="button"
+            onClick={() => onSubmit(DEMO_CREDENTIALS)}
+            disabled={isLoading}
+            className="btn btn-secondary btn-lg w-full"
+          >
+            Try the demo
+          </button>
+          <p className="mt-2 mb-5 text-center text-body-sm text-fg-muted">
+            Explore with a shared account, no sign-up needed.
+          </p>
 
           <p className="text-center text-body-sm text-fg-muted">
             Don&apos;t have an account?{" "}

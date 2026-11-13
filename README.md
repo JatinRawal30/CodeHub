@@ -33,6 +33,7 @@ An online judge. Users browse coding problems, write solutions in an in-browser 
 
 **Accounts and profiles**
 - Register and log in with a username or email
+- **Try the demo** on the login page signs into a shared demo account (`demo` / `Demo@1234`). Profile, password, photo and account deletion are locked for it, and its visitors get rate limits per IP
 - Forgot password: reset with a 6-digit code sent by email (printed to the server console when email isn't configured)
 - Search for other users from the header (`Ctrl/⌘ K`)
 - Public profile at `/u/:username`: solved count by difficulty, submission stats, activity heatmap, recent accepted problems
@@ -250,7 +251,10 @@ cd backend
 node src/utils/seedProblems.js          # the 20 classic problems (IDs 1-20)
 node scripts/seedProblems.js --dry-run  # checks the 100 extra problems, writes nothing
 node scripts/seedProblems.js            # adds them (IDs 21-120)
+node scripts/seedUsers.js               # 29 demo users with solving history, plus the shared demo account
 ```
+
+`seedUsers.js` also takes `--dry-run`, and `--remove` deletes every seeded user and their submissions. Seeded accounts all use `@seed.codehub.dev` emails, so real accounts are never touched. Their submissions are made up; nothing is judged.
 
 Both scripts are safe to re-run: problems that already exist are updated or skipped. You can also add problems one at a time from the admin panel.
 
@@ -353,7 +357,7 @@ These are deliberate trade-offs for a free-tier deployment, listed so they're ea
 - **One active session per user.** A single refresh token per user means logging in on a second device signs out the first one.
 - **Single instance.** The worker runs inside the API process. That's fine at small scale; to grow, run the worker as its own service.
 - **Email verification has no screen yet.** The endpoints exist, but the frontend doesn't call them, and unverified users can still submit.
-- **Contest and Chat Room are placeholders.** The tabs open "coming soon" pages.
+- **Contest is a placeholder.** The tab opens a "coming soon" page.
 - **The leaderboard is recalculated on every request.** Fine at small scale; it would need caching with thousands of users.
 - **Admin edits are limited to about 100 KB per request,** so the largest seeded hidden tests can't be edited from the panel.
 - **No automated test suite.** The seed script checks its own problems; the rest was tested by hand and with throwaway scripts.

@@ -1,6 +1,8 @@
 import { Link } from "react-router";
 import CodeHubLogo from "../CodeHubLogo";
+import { useSelector } from "react-redux";
 import ThemeToggle from "../ThemeToggle";
+import UserAvatar from "../UserAvatar";
 
 function ButtonSpinner() {
   return (
@@ -12,6 +14,9 @@ function ButtonSpinner() {
 }
 
 export default function ProblemHeader({ onRun, onSubmit, isRunning, isSubmitting }) {
+  const { user, profile } = useSelector((state) => state.auth);
+  const username = profile?.username || user?.username || "Coder";
+  const avatar = user?.avatar || profile?.avatar || null;
   const isBusy = isRunning || isSubmitting;
   const shortcutKey = navigator.platform?.toLowerCase().includes("mac") ? "⌘" : "Ctrl";
 
@@ -52,8 +57,11 @@ export default function ProblemHeader({ onRun, onSubmit, isRunning, isSubmitting
         </button>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-3">
         <ThemeToggle />
+        <Link to={`/u/${username}`} aria-label="Your profile" className="rounded-full">
+          <UserAvatar src={avatar} name={username} size={32} className="rounded-full" />
+        </Link>
       </div>
     </header>
   );

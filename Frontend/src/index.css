@@ -53,6 +53,11 @@
   --brand-fg: oklch(0.16 0.01 60);
   --brand-ink: oklch(0.6 0.15 62);
 
+  /* leaderboard top three */
+  --medal-gold: oklch(0.66 0.14 80);
+  --medal-silver: oklch(0.58 0.02 250);
+  --medal-bronze: oklch(0.58 0.11 50);
+
   /* success = Easy / Accepted */
   --success: oklch(0.55 0.13 160);
   --success-soft: oklch(0.55 0.13 160 / 10%);
@@ -117,6 +122,10 @@
   --primary-soft-line: oklch(0.82 0.1 175 / 28%);
 
   --brand-ink: var(--brand);
+
+  --medal-gold: oklch(0.84 0.15 85);
+  --medal-silver: oklch(0.84 0.015 250);
+  --medal-bronze: oklch(0.74 0.11 55);
 
   --success: oklch(0.82 0.12 162);
   --success-soft: oklch(0.82 0.12 162 / 14%);

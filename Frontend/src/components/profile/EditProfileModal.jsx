@@ -266,7 +266,7 @@ export default function EditProfileModal({ isOpen, onClose, profile, onSaved }) 
             </div>
           ) : tab === "profile" ? (
             <>
-              <AvatarPicker avatar={profile.avatar} name={profile.name || profile.username} onChanged={onSaved} />
+              <AvatarPicker avatar={profile.avatar} name={profile.username} onChanged={onSaved} />
               <ProfileForm profile={profile} onSaved={onSaved} />
             </>
           ) : (

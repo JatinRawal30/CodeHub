@@ -1,6 +1,6 @@
 const express = require("express");
 const { registerUser, login, logout, refreshAccessToken, adminRegister, deleteProfile } = require("../controllers/userAuth.controller");
-const { authMiddleware, adminAuthMiddleware } = require("../middleware/auth.middleware");
+const { authMiddleware, adminAuthMiddleware, blockDemoAccount } = require("../middleware/auth.middleware");
 const { forgotPasswordHandler, resetPasswordHandler } = require("../controllers/emailVerification.controller");
 const { loginLimiter, registerLimiter, refreshLimiter, forgotPasswordLimiter, resetPasswordLimiter } = require("../middleware/rateLimiter.middleware");
 
@@ -15,6 +15,6 @@ authRoute.post("/forgot-password", forgotPasswordLimiter, forgotPasswordHandler)
 authRoute.post("/reset-password", resetPasswordLimiter, resetPasswordHandler);
 authRoute.post("/admin/register", adminAuthMiddleware, adminRegister);
 
-authRoute.delete("/profile", authMiddleware, deleteProfile);
+authRoute.delete("/profile", authMiddleware, blockDemoAccount, deleteProfile);
 
 module.exports = authRoute;
